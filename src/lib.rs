@@ -1,6 +1,6 @@
 use std::time::SystemTime;
 
-pub struct Date {
+pub struct AdvDate {
     pub millisec: u8,
     pub weekday: Weekday,
     pub timezone: Timezone,
@@ -20,10 +20,11 @@ pub struct CalDate {
 
 pub struct FullDate {
     pub cal: CalDate,
-    pub 
+    pub clo: CloDate,
+    pub adv: AdvDate
 }
 
-impl std::fmt::Display for Date {
+impl std::fmt::Display for FullDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -37,6 +38,20 @@ impl std::fmt::Display for Date {
         )
     }
 }
+
+impl CloDate {
+    pub fn new(date: &SystemTime)->CloDate {
+        let dur = match date.duration_since(UNIX_EPOCH) {
+            Ok(d)=>d,
+            //Before Unix Epoch
+            Err(d)=>d,
+        };
+        let secs = dur.as_secs();
+        let days 
+    }
+}
+
+
 
 impl Date {
     pub fn new() -> Date {
@@ -185,7 +200,7 @@ impl Weekday {
 
 impl Date {
     pub fn now(mut self) -> Date {
-        let time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        let time: Duration = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
             Ok(d) => d,
             Err(_) => return self,
         };
