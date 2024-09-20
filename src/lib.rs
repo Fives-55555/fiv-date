@@ -2,14 +2,25 @@ use std::time::SystemTime;
 
 pub struct Date {
     pub millisec: u8,
+    pub weekday: Weekday,
+    pub timezone: Timezone,
+}
+
+pub struct CloDate {
     pub second: u8,
     pub minutes: u8,
     pub hour: u8,
+}
+
+pub struct CalDate {
     pub day: u8,
     pub month: Month,
-    pub year: u16,
-    pub weekday: Weekday,
-    pub timezone: Timezone,
+    pub year: u16
+}
+
+pub struct FullDate {
+    pub cal: CalDate,
+    pub 
 }
 
 impl std::fmt::Display for Date {
