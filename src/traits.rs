@@ -195,11 +195,21 @@ impl Time for Days {
             },
         };
         leap_sec(&mut dur, b);
-        let mut secs = dur.as_secs()%86400;
-        if b {
-            secs = 86400-dur.as_secs();
-        }
-        Days((secs/3600) as u16)
+        let mut days = dur.as_secs()/86400;
+        days%=1461;
+        days = if b {
+            days-match days {
+                1096.. =>731,
+                731.. =>2,
+                365.. =>days,
+                _=>0
+            };
+        } else {
+            days-match days {
+                
+            }
+        };
+        Days(days)
     }
 }
 
