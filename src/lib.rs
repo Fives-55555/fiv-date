@@ -1,155 +1,72 @@
-use std::time::SystemTime;
+use std::{
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
+pub use crate::traits::Time;
+pub use crate::cal::Day;
+pub use crate::cal::Days;
+pub use crate::cal::Month;
+pub use crate::cal::Year;
+pub use crate::clo::Hour;
 
-pub struct AdvDate {
-    pub millisec: u8,
-    pub weekday: Weekday,
-    pub timezone: Timezone,
-}
+
+pub mod tests;
+pub mod traits;
+
+pub mod clo;
+pub mod cal;
+
+//pub struct AdvDate {
+// pub millisec: u8,
+// pub weekday: Weekday,
+// pub timezone: Timezone,
+// }
 
 pub struct CloDate {
     pub second: u8,
-    pub minutes: u8,
+    pub minute: u8,
     pub hour: u8,
 }
 
-pub struct CalDate {
-    pub day: u8,
-    pub month: Month,
-    pub year: u16
-}
 
-pub struct FullDate {
-    pub cal: CalDate,
-    pub clo: CloDate,
-    pub adv: AdvDate
-}
 
-impl std::fmt::Display for FullDate {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}/{}/{},{}:{}:{}",
-            self.day,
-            self.month.as_str(),
-            self.year,
-            self.hour,
-            self.minutes,
-            self.second
-        )
-    }
-}
+// pub struct FullDate {
+// pub cal: CalDate,
+// pub clo: CloDate,
+// pub adv: AdvDate
+// }
 
 impl CloDate {
-    pub fn new(date: &SystemTime)->CloDate {
+    pub fn new(date: &SystemTime) -> CloDate {
+        let mut b = false;
         let dur = match date.duration_since(UNIX_EPOCH) {
-            Ok(d)=>d,
+            Ok(d) => d,
             //Before Unix Epoch
-            Err(d)=>d,
-        };
-        let secs = dur.as_secs();
-        let days 
-    }
-}
-
-
-
-impl Date {
-    pub fn new() -> Date {
-        Date {
-            millisec: 0,
-            second: 0,
-            minutes: 0,
-            hour: 0,
-            day: 1,
-            month: Month::JANUARY,
-            year: 1970,
-            weekday: Weekday::THURSDAY,
-            timezone: Timezone::GMT,
-        }
-    }
-    pub fn to_http_string(&self) -> String {
-        format!(
-            "Date: {}, {:02} {} {:04} {:02}:{:02}:{:02} {}",
-            self.weekday.as_str(),
-            self.day,
-            self.month.as_str(),
-            self.year,
-            self.hour,
-            self.minutes,
-            self.second,
-            self.timezone.as_str()
-        )
-    }
-}
-
-pub struct Month(Mon);
-
-impl Month {
-    pub const JANUARY: Month = Month(Mon::Jan);
-    pub const FEBUARY: Month = Month(Mon::Feb);
-    pub const MARCH: Month = Month(Mon::Mar);
-    pub const APRIL: Month = Month(Mon::Apr);
-    pub const MAY: Month = Month(Mon::May);
-    pub const JUNE: Month = Month(Mon::Jun);
-    pub const JULY: Month = Month(Mon::Jul);
-    pub const AUGUST: Month = Month(Mon::Aug);
-    pub const SEPTEMBER: Month = Month(Mon::Sep);
-    pub const OCTOBER: Month = Month(Mon::Oct);
-    pub const NOVEMBER: Month = Month(Mon::Nov);
-    pub const DECEMBER: Month = Month(Mon::Dec);
-
-    pub fn from_u8(z: u8) -> Month {
-        match z {
-            1 => Month(Mon::Jan),
-            2 => Month(Mon::Feb),
-            3 => Month(Mon::Mar),
-            4 => Month(Mon::Apr),
-            5 => Month(Mon::May),
-            6 => Month(Mon::Jun),
-            7 => Month(Mon::Jul),
-            8 => Month(Mon::Aug),
-            9 => Month(Mon::Sep),
-            10 => Month(Mon::Oct),
-            11 => Month(Mon::Nov),
-            12 => Month(Mon::Dec),
-            _ => {
-                panic!("Date::1");
+            Err(d) => {
+                b = true;
+                d.duration()
             }
+        };
+        let mut hours = dur.as_secs() % 86400;
+        if b {
+            hours = 86400 - hours;
         }
-    }
-    pub fn as_str(&self) -> &str {
-        match self.0 {
-            Mon::Jan => "Jan",
-            Mon::Feb => "Feb",
-            Mon::Mar => "Mar",
-            Mon::Apr => "Apr",
-            Mon::May => "May",
-            Mon::Jun => "Jun",
-            Mon::Jul => "Jul",
-            Mon::Aug => "Aug",
-            Mon::Sep => "Sep",
-            Mon::Oct => "Oct",
-            Mon::Nov => "Nov",
-            Mon::Dec => "Dec",
+        let seconds = (hours % 60) as u8;
+        hours /= 60;
+        let minutes = (hours % 60) as u8;
+        hours /= 60;
+        hours %= 24;
+        CloDate {
+            hour: hours as u8,
+            minute: minutes,
+            second: seconds,
         }
     }
 }
 
-enum Mon {
-    Jan,
-    Feb,
-    Mar,
-    Apr,
-    May,
-    Jun,
-    Jul,
-    Aug,
-    Sep,
-    Oct,
-    Nov,
-    Dec,
-}
+//=====================================================================================================================================================
 
+
+/*
 pub struct Weekday(Wd);
 
 enum Wd {
@@ -160,12 +77,12 @@ enum Wd {
     Friday,
     Saturday,
     Sunday,
-}
-
-impl Weekday {
-    pub const MONDAY: Weekday = Weekday(Wd::Monday);
-    pub const TUESDAY: Weekday = Weekday(Wd::Tuesday);
-    pub const WEDNESDAY: Weekday = Weekday(Wd::Wednesday);
+    }
+    
+    impl Weekday {
+        pub const MONDAY: Weekday = Weekday(Wd::Monday);
+        pub const TUESDAY: Weekday = Weekday(Wd::Tuesday);
+        pub const WEDNESDAY: Weekday = Weekday(Wd::Wednesday);
     pub const THURSDAY: Weekday = Weekday(Wd::Thursday);
     pub const FRIDAY: Weekday = Weekday(Wd::Friday);
     pub const SATURDAY: Weekday = Weekday(Wd::Saturday);
@@ -198,125 +115,25 @@ impl Weekday {
     }
 }
 
-impl Date {
-    pub fn now(mut self) -> Date {
-        let time: Duration = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(d) => d,
-            Err(_) => return self,
-        };
-        let mut times: String = format!("{:?}", time);
-        times.pop();
-        let f: f64 = times.parse::<f64>().unwrap();
-        let millisec: u8 = ((f % 1.0)*1000.0).floor() as u8;
-        let rf: u64 = f.floor() as u64;
-        let seconds: u8 = (rf % 60) as u8;
-        let minutes: u8 = (rf % 3600 / 60) as u8;
-        let hours: u8 = (rf % 86400 / 3600) as u8;
-        let mut days: u64 = rf / 86400;
-        let wd: u64 = days % 7;
-        let mut year: u64 = 1970;
-        if days >= 1095 {
-            days -= 1095;
-            year += 3;
-            while days >= 1461 {
-                days -= 1461;
-                year += 4;
-            }
-            while days >= 365 {
-                days -= 365;
-                year += 1;
-            }
-            if year % 4 == 0 && days > 90 {
-                days -= 1;
-            }
-        } else {
-            panic!("Date::3");
-        };
-        let (month, day) = parse_month(days);
-        self.day = day;
-        self.hour = hours;
-        self.minutes = minutes;
-        self.month = month;
-        self.second = seconds;
-        self.timezone = Timezone::GMT;
-        self.year = year as u16;
-        self.weekday = Weekday::from_u64(4 + wd);
-        self.millisec = millisec;
-        self
-    }
-    pub fn to_timezone(mut self, t: Timezone) -> Date {
-        let h: i8 = self.hour.clone() as i8 - (self.timezone.in_hour() - t.in_hour());
-        match h {
-            ..=-1 => {
-                self.hour = (h + 24) as u8;
-                self.day -= 1;
-            }
-            0..=24 => {
-                self.hour = h as u8;
-            }
-            25.. => {
-                self.day += 1;
-                self.hour = (h - 24) as u8;
-            }
-        }
-        self.timezone = t.clone();
-        self
-    }
-}
-
-fn parse_month(mut days: u64) -> (Month, u8) {
-    let month: Month = match days {
-        335..=365 => {
-            days -= 334;
-            Month::DECEMBER
-        }
-        305.. => {
-            days -= 304;
-            Month::NOVEMBER
-        }
-        274.. => {
-            days -= 273;
-            Month::OCTOBER
-        }
-        244.. => {
-            days -= 212;
-            Month::SEPTEMBER
-        }
-        213.. => {
-            days -= 212;
-            Month::AUGUST
-        }
-        182.. => {
-            days -= 181;
-            Month::JULY
-        }
-        152.. => {
-            days -= 151;
-            Month::JUNE
-        }
-        121.. => {
-            days -= 120;
-            Month::MAY
-        }
-        91.. => {
-            days -= 90;
-            Month::APRIL
-        }
-        60.. => {
-            days -= 59;
-            Month::MARCH
-        }
-        32.. => {
-            days -= 31;
-            Month::FEBUARY
-        }
-        0.. => Month::JANUARY,
-    };
-    (month, days as u8)
-}
 
 #[derive(Clone)]
-pub struct Timezone(Tzone);
+pub struct TimeZone<T: TimeZoneTr>{
+    summertime: Option<bool>
+}
+
+pub trait TimeZoneTr {
+    const fn get_tf_utc(&self)->(i8, i8);
+}
+
+pub struct UTC;
+
+impl TimeZoneTr for UTC {
+    const fn get_tf_utc(&self)->(i8, i8) {
+        (0,0)
+    }
+}
+
+
 
 #[derive(Clone)]
 enum Tzone {
@@ -511,4 +328,67 @@ impl Timezone {
             Tzone::IDLW => -12,
         }
     }
+}
+
+*/
+//-----------------------------------------------------------------------------------------------------
+//useful Funcs
+
+fn leap_sec(dur: &mut Duration, b: bool) {
+    *dur-=Duration::from_secs(if b {
+        27
+    }else{
+        match dur.as_secs() {
+            ..=78796799=>27,//1972.06.30-23::59::59
+            ..=94694399=>26,//1972.12.31-23::59::59
+            ..=126230399=>25,//1973.12.31-23::59::59
+            ..=157766399=>24,//1974.12.31-23::59::59
+            ..=189302399=>23,//1975.12.31-23::59::59
+            ..=220924799=>22,//1976.12.31-23::59::59
+            ..=252460799=>21,//1977.12.31-23::59::59
+            ..=283996799=>20,//1978.12.31-23::59::59
+            ..=315532799=>19,//1979.12.31-23::59::59
+            ..=362793599=>18,//1981.06.3-23::59::59
+            ..=394329599=>17,//1982.06.3-23::59::59
+            ..=425865599=>16,//1983.06.3-23::59::59
+            ..=489023999=>15,//1985.06.3-23::59::59
+            ..=567993599=>14,//1987.12.31-23::59::59
+            ..=631151999=>13,//1989.12.31-23::59::59
+            ..=662687999=>12,//1990.12.31-23::59::59
+            ..=709948799=>11,//1992.06.3-23::59::59
+            ..=741484799=>10,//1993.06.3-23::59::59
+            ..=773020799=>9,//1994.06.3-23::59::59
+            ..=820454399=>8,//1995.12.31-23::59::59
+            ..=867715199=>7,//1997.06.3-23::59::59
+            ..=915148799=>6,//1998.12.31-23::59::59
+            ..=1136073599=>5,//2005.12.31-23::59::59
+            ..=1230767999=>4,//2008.12.31-23::59::59
+            ..=1341100799=>3,//2012.06.3-23::59::59
+            ..=1435708799=>2,//2015.06.3-23::59::59
+            ..=1483228799=>1,//2016.12.31-23::59::59
+            _=>unreachable!("Hä")
+        }
+    })
+}
+//-----------------------------------------------------------------------------------------------------
+//Types
+//-----------------------------------------------------------------------------------------------------
+//Traits IMPL
+
+
+
+//-----------------------------------------------------------------------------------------------------
+//FORMAT IMPL
+
+
+
+//format_date_struct!(Ddt, "YYYY\\D\\AMM");
+
+
+#[test]
+fn test() {
+    let year = Year::now(&SystemTime::now());
+    let month = Month::now(&SystemTime::now());
+    let day = Day::now(&SystemTime::now());
+    println!("{:#}|{:#}|{:#}", year, month, day);
 }
