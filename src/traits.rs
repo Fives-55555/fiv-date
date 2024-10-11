@@ -202,3 +202,26 @@ impl Time for Days {
         Days((secs/3600) as u16)
     }
 }
+
+impl Time for Minute {
+    fn new()->Self {
+        Minute(0)
+    }
+    fn now(s: &SystemTime) -> Self {
+        let mut b = false;
+        let mut dur = match s.duration_since(UNIX_EPOCH) {
+            Ok(d)=>d,
+            //Before Unix Epoch
+            Err(d)=>{
+                b=true;
+                d.duration()
+            },
+        };
+        leap_sec(&mut dur, b);
+        let mut secs = dur.as_secs()%3600;
+        if b {
+            secs = 3600-secs;
+        }
+        Minute((secs/60) as u8)
+    }
+}
