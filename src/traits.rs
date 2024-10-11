@@ -198,15 +198,18 @@ impl Time for Days {
         let mut days = dur.as_secs()/86400;
         days%=1461;
         days = if b {
-            days-match days {
-                1096.. =>731,
-                731.. =>2,
-                365.. =>days,
-                _=>0
-            };
+            match days {
+                1096.. =>1461,
+                731.. =>1096,
+                365.. =>731,
+                _=>365
+            }-days;
         } else {
             days-match days {
-                
+                1069..=>1069,
+                731..=>731,
+                365..=>365,
+                _=>0
             }
         };
         Days(days)
@@ -235,3 +238,4 @@ impl Time for Minute {
         Minute((secs/60) as u8)
     }
 }
+
