@@ -1,5 +1,6 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+pub use date_macro::format_date_struct;
 pub use crate::traits::Time;
 pub use crate::cal::Weekday;
 pub use crate::cal::Day;
