@@ -1,43 +1,21 @@
 use crate::format_inner;
 
-pub struct Day (pub u8);
+pub struct Day(pub u8);
 
 impl Day {
-    pub fn day(day: u16)->Day {
+    pub fn day(day: u16) -> Day {
         Day(match day {
-            335..366 => {
-                day-334
-            }
-            305.. => {
-                day-304
-            }
-            274.. => {
-                day-273
-            }
-            244.. => {
-                day-243
-            }
-            213.. => {
-                day-212
-            }
-            182.. => {
-                day-181
-            }
-            152.. => {
-                day-151
-            }
-            121.. => {
-                day-120
-            }
-            91.. => {
-                day-90
-            }
-            60.. => {
-                day-59
-            }
-            32.. => {
-                day-31
-            }
+            335..366 => day - 334,
+            305.. => day - 304,
+            274.. => day - 273,
+            244.. => day - 243,
+            213.. => day - 212,
+            182.. => day - 181,
+            152.. => day - 151,
+            121.. => day - 120,
+            91.. => day - 90,
+            60.. => day - 59,
+            32.. => day - 31,
             0.. => day,
         } as u8)
     }
@@ -136,47 +114,25 @@ pub enum Mon {
     Dec,
 }
 
-pub fn mon(day: u16)->Month {
+pub fn mon(day: u16) -> Month {
     match day {
-        335..366 => {
-            DEC
-        }
-        305.. => {
-            NOV
-        }
-        274.. => {
-            OCT
-        }
-        244.. => {
-            SEP
-        }
-        213.. => {
-            AUG
-        }
-        182.. => {
-            JUL
-        }
-        152.. => {
-            JUN
-        }
-        121.. => {
-            MAY
-        }
-        91.. => {
-            APR
-        }
-        60.. => {
-            MAR
-        }
-        32.. => {
-            FEB
-        }
+        335..366 => DEC,
+        305.. => NOV,
+        274.. => OCT,
+        244.. => SEP,
+        213.. => AUG,
+        182.. => JUL,
+        152.. => JUN,
+        121.. => MAY,
+        91.. => APR,
+        60.. => MAR,
+        32.. => FEB,
         0.. => JAN,
     }
 }
 
-pub fn mon_a_day(mut day: u16)->(Month,u8) {
-    let month = match day%365 {
+pub fn mon_a_day(mut day: u16) -> (Month, u8) {
+    let month = match day % 365 {
         335..=365 => {
             day -= 334;
             DEC
@@ -235,7 +191,7 @@ pub struct Year(pub u16);
 pub struct CalDate {
     pub day: u8,
     pub month: Month,
-    pub year: u16
+    pub year: u16,
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -256,6 +212,6 @@ pub enum Wd {
     Sunday,
 }
 
-format_inner!{Year}
-format_inner!{Day}
-format_inner!{Days}
+format_inner! {Year}
+format_inner! {Day}
+format_inner! {Days}
