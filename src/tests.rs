@@ -6,52 +6,52 @@ use crate::{cal::{JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC}, Month, Year,
 #[test]
 fn test_year() {
     let default = Year::new();
-    assert!(default == 1970);
+    assert!(default.0 == 1970);
     let x1 = SystemTime::UNIX_EPOCH+Duration::from_secs(364*86400);
     let y1 = Year::now(&x1);
-    assert!(y1==1970);
+    assert!(y1.0==1970);
     let x2 = SystemTime::UNIX_EPOCH+Duration::from_secs(365*86400);
     let y2 = Year::now(&x2);
-    assert!(y2==1971);
+    assert!(y2.0==1971);
     let x3 = SystemTime::UNIX_EPOCH+Duration::from_secs(366*86400);
     let y3 = Year::now(&x3);
-    assert!(y3==1971);
+    assert!(y3.0==1971);
     let x1 = SystemTime::UNIX_EPOCH+Duration::from_secs(729*86400);
     let y1 = Year::now(&x1);
-    assert!(y1==1971);
+    assert!(y1.0==1971);
     let x2 = SystemTime::UNIX_EPOCH+Duration::from_secs(730*86400);
     let y2 = Year::now(&x2);
-    assert!(y2==1972);
+    assert!(y2.0==1972);
     let x3 = SystemTime::UNIX_EPOCH+Duration::from_secs(731*86400);
     let y3 = Year::now(&x3);
-    assert!(y3==1972);
+    assert!(y3.0==1972);
     let x1 = SystemTime::UNIX_EPOCH+Duration::from_secs(1095*86400);
     let y1 = Year::now(&x1);
-    assert!(y1==1972);
+    assert!(y1.0==1972);
     let x2 = SystemTime::UNIX_EPOCH+Duration::from_secs(1096*86400);
     let y2 = Year::now(&x2);
-    assert!(y2==1973);
+    assert!(y2.0==1973);
     let x3 = SystemTime::UNIX_EPOCH+Duration::from_secs(1097*86400);
     let y3 = Year::now(&x3);
-    assert!(y3==1973);
+    assert!(y3.0==1973);
     let x1 = SystemTime::UNIX_EPOCH+Duration::from_secs(1460*86400);
     let y1 = Year::now(&x1);
-    assert!(y1==1973);
+    assert!(y1.0==1973);
     let x2 = SystemTime::UNIX_EPOCH+Duration::from_secs(1461*86400);
     let y2 = Year::now(&x2);
-    assert!(y2==1974);
+    assert!(y2.0==1974);
     let x3 = SystemTime::UNIX_EPOCH+Duration::from_secs(1462*86400);
     let y3 = Year::now(&x3);
-    assert!(y3==1974);
+    assert!(y3.0==1974);
     let x1 = SystemTime::UNIX_EPOCH+Duration::from_secs(1825*86400);
     let y1 = Year::now(&x1);
-    assert!(y1==1974);
+    assert!(y1.0==1974);
     let x2 = SystemTime::UNIX_EPOCH+Duration::from_secs(1826*86400);
     let y2 = Year::now(&x2);
-    assert!(y2==1975);
+    assert!(y2.0==1975);
     let x3 = SystemTime::UNIX_EPOCH+Duration::from_secs(1827*86400);
     let y3 = Year::now(&x3);
-    assert!(y3==1975);
+    assert!(y3.0==1975);
 }
 
 #[test]

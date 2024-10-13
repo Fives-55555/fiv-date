@@ -1,5 +1,5 @@
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::{cal::{CalDate, mon, mon_a_day, JAN, FEB}, Day, Days, Month, Year, Hour, leap_sec};
+use crate::{cal::{CalDate, mon, mon_a_day, JAN, FEB}, Day, Days, Month, Year, Hour, Minute};
 
 
 pub trait Time {
@@ -22,7 +22,6 @@ impl Time for Year {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut days = dur.as_secs()/86400;
         let years = (days/1461) as u16 *4;
         days%=1461;
@@ -58,7 +57,6 @@ impl Time for Month {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut days = (dur.as_secs()/86400)%1461;
         if b {
             days=1461-days;
@@ -84,7 +82,6 @@ impl Time for Day {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut days = (dur.as_secs()/86400)%1461;
         if b {
             days=1461-days;
@@ -116,7 +113,6 @@ impl Time for CalDate {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut days = (dur.as_secs()/86400)+1;
         let mut years = (days/1461) as u16 *4;
         days%=1461;
@@ -171,7 +167,6 @@ impl Time for Hour {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut secs = dur.as_secs()%86400;
         if b {
             secs = 86400-dur.as_secs();
@@ -194,25 +189,24 @@ impl Time for Days {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut days = dur.as_secs()/86400;
         days%=1461;
         days = if b {
-            match days {
+            (match days {
                 1096.. =>1461,
                 731.. =>1096,
                 365.. =>731,
                 _=>365
-            }-days;
+            })-days
         } else {
             days-match days {
-                1069..=>1069,
-                731..=>731,
-                365..=>365,
+                1069.. =>1069,
+                731.. =>731,
+                365.. =>365,
                 _=>0
             }
         };
-        Days(days)
+        Days(days as u16)
     }
 }
 
@@ -230,7 +224,6 @@ impl Time for Minute {
                 d.duration()
             },
         };
-        leap_sec(&mut dur, b);
         let mut secs = dur.as_secs()%3600;
         if b {
             secs = 3600-secs;
@@ -238,4 +231,3 @@ impl Time for Minute {
         Minute((secs/60) as u8)
     }
 }
-

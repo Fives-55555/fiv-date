@@ -1,12 +1,14 @@
-use std::{
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 pub use crate::traits::Time;
+pub use crate::cal::Weekday;
 pub use crate::cal::Day;
 pub use crate::cal::Days;
 pub use crate::cal::Month;
 pub use crate::cal::Year;
 pub use crate::clo::Hour;
+pub use crate::clo::Minute;
+pub use crate::clo::CloDate;
 
 
 pub mod tests;
@@ -14,26 +16,6 @@ pub mod traits;
 
 pub mod clo;
 pub mod cal;
-
-//pub struct AdvDate {
-// pub millisec: u8,
-// pub weekday: Weekday,
-// pub timezone: Timezone,
-// }
-
-pub struct CloDate {
-    pub second: u8,
-    pub minute: u8,
-    pub hour: u8,
-}
-
-
-
-// pub struct FullDate {
-// pub cal: CalDate,
-// pub clo: CloDate,
-// pub adv: AdvDate
-// }
 
 impl CloDate {
     pub fn new(date: &SystemTime) -> CloDate {
@@ -67,17 +49,7 @@ impl CloDate {
 
 
 /*
-pub struct Weekday(Wd);
 
-enum Wd {
-    Monday,
-    Tuesday,
-    Wednesday,
-    Thursday,
-    Friday,
-    Saturday,
-    Sunday,
-    }
     
     impl Weekday {
         pub const MONDAY: Weekday = Weekday(Wd::Monday);
@@ -334,7 +306,7 @@ impl Timezone {
 //-----------------------------------------------------------------------------------------------------
 //useful Funcs
 
-fn leap_sec(dur: &mut Duration, b: bool) {
+fn leap_sec_add(dur: &mut Duration, b: bool) {
     *dur-=Duration::from_secs(if b {
         27
     }else{
@@ -370,25 +342,28 @@ fn leap_sec(dur: &mut Duration, b: bool) {
         }
     })
 }
-//-----------------------------------------------------------------------------------------------------
-//Types
-//-----------------------------------------------------------------------------------------------------
-//Traits IMPL
-
-
-
-//-----------------------------------------------------------------------------------------------------
-//FORMAT IMPL
-
-
-
-//format_date_struct!(Ddt, "YYYY\\D\\AMM");
+use date_macro::format_date_struct;
+format_date_struct!(Ddt, "YYYY\\D\\AMM");
 
 
 #[test]
 fn test() {
+    let x = Ddt::new();
+    println!("{x}");
     let year = Year::now(&SystemTime::now());
     let month = Month::now(&SystemTime::now());
     let day = Day::now(&SystemTime::now());
-    println!("{:#}|{:#}|{:#}", year, month, day);
+}
+
+#[macro_export]
+macro_rules! format_inner {
+    ($name:ident) => {
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(
+                    f,"{}",self.0
+                )
+            }
+        }
+    }
 }

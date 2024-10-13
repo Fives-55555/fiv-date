@@ -13,26 +13,24 @@ pub fn format_date_struct(input: TokenStream) -> TokenStream {
         _=>panic!("Missing Format String")
     };
     format_str.remove(0);
-    format_str.pop();
     let mut chars = format_str.chars();
     let mut char = chars.next();
-    //Check if char is some
+    if char.is_none() {
+        panic!("Impossible::1")
+    }
     
     let len = format_str.len();
     let mut i = 0;
     let mut print = String::new();
     let mut format = Vec::new();
     'outer: while i < len {
-        if char.is_none() {
-            eprintln!("Err char is None");
-            panic!();
-        }
         match char.unwrap() {
+            '"'=>break,
             'Y'=>{
                 for x in 1..4 {
                     char=chars.next();
                     if !(char.is_some() && char.unwrap() == 'Y') {
-                        print.push_str(std::iter::repeat('Y').take(x).collect::<String>().as_str());
+                        print.push_str("Y".repeat(x).as_str());
                         i+=x+1;
                         continue 'outer;
                     }
@@ -112,17 +110,16 @@ pub fn format_date_struct(input: TokenStream) -> TokenStream {
         let mut str = thing.to_name().to_string();
         str.push(':');
         str.push_str(thing.to_type());
-        str.push_str("::new(),");
+        str.push_str("::new()");
         str
-    }).collect::<Vec<String>>().join("\n            ");
-    println!("{new}");
+    }).collect::<Vec<String>>().join(",\n            ");
     let now = fields.iter().map(|thing|{
         let mut str = thing.to_name().to_string();
         str.push(':');
         str.push_str(thing.to_type());
-        str.push_str("::now(),");
+        str.push_str("::now(s)");
         str
-    }).collect::<Vec<String>>().join("\n            ");
+    }).collect::<Vec<String>>().join(",\n            ");
     let field = fields.iter().map(|thing|{
         let mut str = thing.to_name().to_string();
         str.push(':');
@@ -140,7 +137,7 @@ impl {name} {{
             {}
         }}
     }}
-    pub fn now()->{name} {{
+    pub fn now(s: &SystemTime)->{name} {{
         {name} {{
             {}
         }}
@@ -152,7 +149,6 @@ impl std::fmt::Display for {name} {{
         write!(f,"{print}", {})
     }}
 }}"#, field, new, now, format.iter().map(|thing|thing.to_fmt()).collect::<Vec<&str>>().join(", "));
-    println!("{z}");
     z.parse().unwrap()
 }
 
@@ -164,6 +160,7 @@ enum Things {
     Day,//of Month
     Days,//of Year
     Month,
+    Timezone,
 }
 
 impl Things {
@@ -175,7 +172,7 @@ impl Things {
             Things::Weekday=>"self.weekday",
             Things::Month=>"self.month",
             Things::Year=>"self.year",
-
+            Things::Timezone=>"self.timezone"
         }
     }
     fn to_name(&self)->&str {
@@ -185,6 +182,7 @@ impl Things {
             Things::Weekday=>"weekday",
             Things::Month=>"month",
             Things::Year=>"year",
+            Things::Timezone=>"timezone",
             _=>panic!("Impossible")
         }
     }
@@ -195,6 +193,7 @@ impl Things {
             Things::Weekday=>"Weekday",
             Things::Month=>"Month",
             Things::Year=>"Year",
+            Things::Timezone=>"Timezone",
             _=>panic!("Impossible")
         }
     }

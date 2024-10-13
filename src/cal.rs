@@ -1,3 +1,5 @@
+use crate::format_inner;
+
 pub struct Day (pub u8);
 
 impl Day {
@@ -112,6 +114,12 @@ impl Month {
     }
 }
 
+impl std::fmt::Display for Mon {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 #[derive(PartialEq)]
 pub enum Mon {
     Jan,
@@ -164,16 +172,6 @@ pub fn mon(day: u16)->Month {
             FEB
         }
         0.. => JAN,
-    }
-}
-
-impl std::fmt::Display for Month {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:02}",
-            self.as_num()
-        )
     }
 }
 
@@ -245,3 +243,19 @@ pub struct CalDate {
 pub struct Days(pub u16);
 
 //-----------------------------------------------------------------------------------------------------
+
+pub type Weekday = Wd;
+
+pub enum Wd {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+}
+
+format_inner!{Year}
+format_inner!{Day}
+format_inner!{Days}
