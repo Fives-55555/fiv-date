@@ -98,7 +98,7 @@ impl std::fmt::Display for Mon {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Mon {
     Jan,
     Feb,
@@ -202,6 +202,7 @@ pub struct Days(pub u16);
 
 pub type Weekday = Wd;
 
+#[derive(PartialEq, Debug)]
 pub enum Wd {
     Monday,
     Tuesday,
@@ -212,6 +213,41 @@ pub enum Wd {
     Sunday,
 }
 
-format_inner! {Year}
-format_inner! {Day}
-format_inner! {Days}
+impl Weekday {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Monday => "Mon",
+            Self::Tuesday => "Tue",
+            Self::Wednesday => "Wed",
+            Self::Thursday => "Thu",
+            Self::Friday => "Fri",
+            Self::Saturday => "Sat",
+            Self::Sunday => "Sun",
+        }
+    }
+    pub fn to_num(&self) -> u8 {
+        match self {
+            Self::Monday => 1,
+            Self::Tuesday => 2,
+            Self::Wednesday => 3,
+            Self::Thursday => 4,
+            Self::Friday => 5,
+            Self::Saturday => 6,
+            Self::Sunday => 7,
+        }
+    }
+    pub fn to_idx(&self) -> u8 {
+        self.to_num() - 1
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+pub struct Weeks(pub u8);
+
+//-----------------------------------------------------------------------------------------------------
+
+format_inner!(Year);
+format_inner!(Day);
+format_inner!(Days);
+format_inner!(Weeks);

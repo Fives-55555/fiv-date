@@ -7,3 +7,4 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
+fiv-date={git="ssh://github.com/Fives-55555/fiv-date.git",rev = "2493dea292a763fc248454ac59ba4125c58cfaf6"}

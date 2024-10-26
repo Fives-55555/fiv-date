@@ -1,13 +1,18 @@
+#![feature(duration_constructors)]
+#[allow(unused_imports)]
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+pub use crate::cal::CalDate;
 pub use crate::cal::Day;
 pub use crate::cal::Days;
 pub use crate::cal::Month;
 pub use crate::cal::Weekday;
+pub use crate::cal::Weeks;
 pub use crate::cal::Year;
 pub use crate::clo::CloDate;
 pub use crate::clo::Hour;
 pub use crate::clo::Minute;
+pub use crate::clo::Second;
 pub use crate::traits::Time;
 pub use date_macro::format_date_struct;
 
@@ -17,75 +22,9 @@ pub mod traits;
 pub mod cal;
 pub mod clo;
 
-impl CloDate {
-    pub fn new(date: &SystemTime) -> CloDate {
-        let mut b = false;
-        let dur = match date.duration_since(UNIX_EPOCH) {
-            Ok(d) => d,
-            //Before Unix Epoch
-            Err(d) => {
-                b = true;
-                d.duration()
-            }
-        };
-        let mut hours = dur.as_secs() % 86400;
-        if b {
-            hours = 86400 - hours;
-        }
-        let seconds = (hours % 60) as u8;
-        hours /= 60;
-        let minutes = (hours % 60) as u8;
-        hours /= 60;
-        hours %= 24;
-        CloDate {
-            hour: hours as u8,
-            minute: minutes,
-            second: seconds,
-        }
-    }
-}
-
 //=====================================================================================================================================================
 
 /*
-
-
-    impl Weekday {
-        pub const MONDAY: Weekday = Weekday(Wd::Monday);
-        pub const TUESDAY: Weekday = Weekday(Wd::Tuesday);
-        pub const WEDNESDAY: Weekday = Weekday(Wd::Wednesday);
-    pub const THURSDAY: Weekday = Weekday(Wd::Thursday);
-    pub const FRIDAY: Weekday = Weekday(Wd::Friday);
-    pub const SATURDAY: Weekday = Weekday(Wd::Saturday);
-    pub const SUNDAY: Weekday = Weekday(Wd::Sunday);
-
-    pub fn from_u64(z: u64) -> Weekday {
-        match z {
-            4 => Weekday(Wd::Thursday),
-            5 => Weekday(Wd::Friday),
-            6 => Weekday(Wd::Saturday),
-            7 => Weekday(Wd::Sunday),
-            8 => Weekday(Wd::Monday),
-            9 => Weekday(Wd::Tuesday),
-            10 => Weekday(Wd::Wednesday),
-            _ => {
-                panic!("Date::2");
-            }
-        }
-    }
-    pub fn as_str(&self) -> &str {
-        match self.0 {
-            Wd::Monday => "Mon",
-            Wd::Tuesday => "Tue",
-            Wd::Wednesday => "Wed",
-            Wd::Thursday => "Thu",
-            Wd::Friday => "Fri",
-            Wd::Saturday => "Sat",
-            Wd::Sunday => "Sun",
-        }
-    }
-}
-
 
 #[derive(Clone)]
 pub struct TimeZone<T: TimeZoneTr>{
@@ -305,52 +244,12 @@ impl Timezone {
 //-----------------------------------------------------------------------------------------------------
 //useful Funcs
 
-fn leap_sec_add(dur: &mut Duration, b: bool) {
-    *dur -= Duration::from_secs(if b {
-        27
-    } else {
-        match dur.as_secs() {
-            ..=78796799 => 27,  //1972.06.30-23::59::59
-            ..=94694399 => 26,  //1972.12.31-23::59::59
-            ..=126230399 => 25, //1973.12.31-23::59::59
-            ..=157766399 => 24, //1974.12.31-23::59::59
-            ..=189302399 => 23, //1975.12.31-23::59::59
-            ..=220924799 => 22, //1976.12.31-23::59::59
-            ..=252460799 => 21, //1977.12.31-23::59::59
-            ..=283996799 => 20, //1978.12.31-23::59::59
-            ..=315532799 => 19, //1979.12.31-23::59::59
-            ..=362793599 => 18, //1981.06.3-23::59::59
-            ..=394329599 => 17, //1982.06.3-23::59::59
-            ..=425865599 => 16, //1983.06.3-23::59::59
-            ..=489023999 => 15, //1985.06.3-23::59::59
-            ..=567993599 => 14, //1987.12.31-23::59::59
-            ..=631151999 => 13, //1989.12.31-23::59::59
-            ..=662687999 => 12, //1990.12.31-23::59::59
-            ..=709948799 => 11, //1992.06.3-23::59::59
-            ..=741484799 => 10, //1993.06.3-23::59::59
-            ..=773020799 => 9,  //1994.06.3-23::59::59
-            ..=820454399 => 8,  //1995.12.31-23::59::59
-            ..=867715199 => 7,  //1997.06.3-23::59::59
-            ..=915148799 => 6,  //1998.12.31-23::59::59
-            ..=1136073599 => 5, //2005.12.31-23::59::59
-            ..=1230767999 => 4, //2008.12.31-23::59::59
-            ..=1341100799 => 3, //2012.06.3-23::59::59
-            ..=1435708799 => 2, //2015.06.3-23::59::59
-            ..=1483228799 => 1, //2016.12.31-23::59::59
-            _ => unreachable!("Hä"),
-        }
-    })
-}
-use date_macro::format_date_struct;
-format_date_struct!(Ddt, "YYYY\\D\\AMM");
+//format_date_struct!(Ddt, "YYYYMMDD");
 
 #[test]
 fn test() {
-    let x = Ddt::new();
-    println!("{x}");
-    let year = Year::now(&SystemTime::now());
-    let month = Month::now(&SystemTime::now());
-    let day = Day::now(&SystemTime::now());
+    let x = Weekday::now(&(SystemTime::now() - Duration::from_days(3)));
+    println!("{}", x.as_str());
 }
 
 #[macro_export]

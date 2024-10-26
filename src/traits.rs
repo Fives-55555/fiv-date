@@ -1,6 +1,6 @@
 use crate::{
     cal::{mon, mon_a_day, CalDate, FEB, JAN},
-    Day, Days, Hour, Minute, Month, Year,
+    CloDate, Day, Days, Hour, Minute, Second, Month, Weekday, Weeks, Year,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -10,13 +10,44 @@ pub trait Time {
     fn now(s: &SystemTime) -> Self;
 }
 
+impl Time for Weekday {
+    fn new() -> Self {
+        Self::Monday
+    }
+    fn now(s: &SystemTime) -> Self {
+        let mut b = false;
+        let dur = match s.duration_since(UNIX_EPOCH) {
+            Ok(d) => d,
+            //Before Unix Epoch
+            Err(d) => {
+                b = true;
+                d.duration()
+            }
+        };
+        let mut days = (dur.as_secs() / 86400) % 7;
+        if b {
+            days = (7 - days) % 7;
+        }
+        match days {
+            0 => Self::Thursday,
+            1 => Self::Friday,
+            2 => Self::Saturday,
+            3 => Self::Sunday,
+            4 => Self::Monday,
+            5 => Self::Tuesday,
+            6 => Self::Wednesday,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl Time for Year {
     fn new() -> Self {
         Year(1970)
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -54,7 +85,7 @@ impl Time for Month {
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -79,7 +110,7 @@ impl Time for Day {
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -110,7 +141,7 @@ impl Time for CalDate {
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -128,7 +159,7 @@ impl Time for CalDate {
                 }
                 671 => {
                     return CalDate {
-                        year: 1970 - (years + 1),
+                        year: 1969 - years,
                         month: FEB,
                         day: 29,
                     }
@@ -172,7 +203,7 @@ impl Time for Hour {
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -190,11 +221,11 @@ impl Time for Hour {
 
 impl Time for Days {
     fn new() -> Self {
-        Days(0)
+        Days(1)
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -204,18 +235,19 @@ impl Time for Days {
         };
         let mut days = dur.as_secs() / 86400;
         days %= 1461;
+        days+=1;
         days = if b {
             (match days {
-                1096.. => 1461,
-                731.. => 1096,
-                365.. => 731,
-                _ => 365,
+                1097.. => 1462,
+                732.. => 1097,
+                366.. => 732,
+                _ => 366,
             }) - days
         } else {
             days - match days {
-                1069.. => 1069,
-                731.. => 731,
-                365.. => 365,
+                1097.. => 1096,
+                731.. => 730,
+                366.. => 365,
                 _ => 0,
             }
         };
@@ -229,7 +261,7 @@ impl Time for Minute {
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
-        let mut dur = match s.duration_since(UNIX_EPOCH) {
+        let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
             //Before Unix Epoch
             Err(d) => {
@@ -242,5 +274,76 @@ impl Time for Minute {
             secs = 3600 - secs;
         }
         Minute((secs / 60) as u8)
+    }
+}
+
+impl Time for Weeks {
+    fn new() -> Self {
+        Self(1)
+    }
+    fn now(s: &SystemTime) -> Self {
+        let wn = Weekday::now(s).to_idx() as u16;
+        let days = Days::now(s).0 - wn;
+        let mut weeks = (days / 7) as u8 + 1;
+        if days % 7 != 0 {
+            weeks += 1;
+        }
+        Weeks(weeks)
+    }
+}
+
+impl Time for CloDate {
+    fn new() -> Self {
+        CloDate {
+            second: 0,
+            minute: 0,
+            hour: 0,
+        }
+    }
+    fn now(s: &SystemTime) -> Self {
+        let mut b = false;
+        let dur = match s.duration_since(UNIX_EPOCH) {
+            Ok(d) => d,
+            //Before Unix Epoch
+            Err(d) => {
+                b = true;
+                d.duration()
+            }
+        };
+        let mut hours = dur.as_secs() % 86400;
+        if b {
+            hours = 86400 - hours;
+        }
+        let seconds = (hours % 60) as u8;
+        hours /= 60;
+        let minutes = (hours % 60) as u8;
+        hours /= 60;
+        CloDate {
+            hour: hours as u8,
+            minute: minutes,
+            second: seconds,
+        }
+    }
+}
+
+impl Time for Second {
+    fn new() -> Self {
+        Second(0)
+    }
+    fn now(s: &SystemTime)->Self {
+        let mut b = false;
+        let dur = match s.duration_since(UNIX_EPOCH) {
+            Ok(d) => d,
+            //Before Unix Epoch
+            Err(d) => {
+                b = true;
+                d.duration()
+            }
+        };
+        let mut secs = (dur.as_secs()%60)as u8;
+        if b {
+            secs = (60-secs)%60;
+        };
+        Second(secs)
     }
 }

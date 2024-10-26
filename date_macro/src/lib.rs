@@ -3,22 +3,21 @@ use proc_macro::{TokenStream, TokenTree};
 #[proc_macro]
 pub fn format_date_struct(input: TokenStream) -> TokenStream {
     let mut tokens = input.into_iter();
-    
+
     let name = match tokens.next() {
         Some(TokenTree::Ident(name)) => name,
         _ => panic!("Missing Name"),
     };
-    
+
     let _ = tokens.next();
-    
-    let mut format_str = match tokens.next() {
+
+    let format_str = match tokens.next() {
         Some(TokenTree::Literal(l)) => l.to_string(),
         _ => panic!("Missing Format String"),
     };
-    
-    format_str.remove(0);
-    
+
     let mut chars = format_str.chars();
+    chars.next();
     let mut char = chars.next();
 
     if char.is_none() {
@@ -27,13 +26,12 @@ pub fn format_date_struct(input: TokenStream) -> TokenStream {
 
     let len = format_str.len();
     let mut i = 0;
-    
+
     let mut print = String::new();
     let mut format = Vec::new();
-    
-    'outer: while i < len {
+
+    'outer: while i < len - 1 {
         match char.unwrap() {
-            '"' => break,
             'Y' => {
                 for x in 1..4 {
                     char = chars.next();
@@ -53,6 +51,7 @@ pub fn format_date_struct(input: TokenStream) -> TokenStream {
                 if char.is_some() && char.unwrap() == 'M' {
                     print.push_str("{:02}");
                     format.push(FormatThing::Month);
+                    char = chars.next();
                     i += 2;
                 } else {
                     print.push('M');
@@ -79,6 +78,18 @@ pub fn format_date_struct(input: TokenStream) -> TokenStream {
                 }
                 i += 1;
             }
+            'w' => {
+                char = chars.next();
+                if char.is_some() && char.unwrap() == 'w' {
+                    print.push_str("{:02}");
+                    format.push(FormatThing::Weeks);
+                    char = chars.next();
+                    i += 2;
+                } else {
+                    print.push('w');
+                    i += 1;
+                }
+            }
             '\\' => {
                 char = chars.next();
                 if char.is_some() && char.unwrap() == '\\' {
@@ -99,105 +110,21 @@ pub fn format_date_struct(input: TokenStream) -> TokenStream {
             }
         }
     }
-    let mut fields: Vec<FormatThing> = Vec::new();
+    let mut fields = Needed::default();
     for thing in format.iter() {
         match thing {
-            FormatThing::Weeknum => {
-                if !fields.contains(&FormatThing::Weekday) {
-                    fields.push(FormatThing::Weekday);
-                }
-            }
-            _ => {
-                if !fields.contains(thing) {
-                    fields.push(thing.clone());
-                }
-            }
+            FormatThing::Weeknum => fields.add(FormatThing::Weekday),
+            _ => fields.add(thing.clone()),
         }
     }
-    if fields.contains(&FormatThing::Day)
-        && fields.contains(&FormatThing::Month)
-        && fields.contains(&FormatThing::Year)
-    {
-        let mut x = 0;
-        for i in 0..fields.len() {
-            match fields[i - x] {
-                (FormatThing::Day | FormatThing::Month | FormatThing::Year) => {
-                    fields.remove(i - x);
-                    x += 1;
-                }
-                _ => (),
-            };
-        }
-        x = 0;
-        for i in 0..format.len() {
-            match format[i - x] {
-                (FormatThing::Day | FormatThing::Month | FormatThing::Year) => {
-                    format.remove(i - x);
-                    x += 1;
-                }
-                _ => (),
-            };
-        }
-    }
-    if fields.contains(&FormatThing::Seconds)
-        && fields.contains(&FormatThing::Minutes)
-        && fields.contains(&FormatThing::Hours)
-    {
-        let mut x = 0;
-        for i in 0..fields.len() {
-            match fields[i - x] {
-                (FormatThing::Seconds | FormatThing::Minutes | FormatThing::Hours) => {
-                    fields.remove(i);
-                    x += 1;
-                }
-                _ => (),
-            };
-        }
-        x = 0;
-        for i in 0..format.len() {
-            match format[i - x] {
-                (FormatThing::Seconds | FormatThing::Minutes | FormatThing::Hours) => {
-                    format.remove(i);
-                    x += 1;
-                }
-                _ => (),
-            };
-        }
-    }
-    let new = fields
-        .iter()
-        .map(|thing| {
-            let mut str = thing.to_name().to_string();
-            str.push(':');
-            str.push_str(thing.to_type());
-            str.push_str("::new()");
-            str
-        })
-        .collect::<Vec<String>>()
-        .join(",\n            ");
-    let now = fields
-        .iter()
-        .map(|thing| {
-            let mut str = thing.to_name().to_string();
-            str.push(':');
-            str.push_str(thing.to_type());
-            str.push_str("::now(s)");
-            str
-        })
-        .collect::<Vec<String>>()
-        .join(",\n            ");
-    let field = fields
-        .iter()
-        .map(|thing| {
-            let mut str = thing.to_name().to_string();
-            str.push(':');
-            str.push_str(thing.to_type());
-            str
-        })
-        .collect::<Vec<String>>()
-        .join(",\n    ");
+    let field = fields.to_fields();
+    let impls = fields.to_impls();
+    let new = fields.to_new();
+    let now = fields.to_now();
     let z = format!(
         r#"
+{impls}
+        
 pub struct {name} {{
     {}
 }}
@@ -225,15 +152,16 @@ impl std::fmt::Display for {name} {{
         now,
         format
             .iter()
-            .map(|thing| thing.to_fmt())
+            .map(|thing| thing.to_fmt(fields.caldate, fields.clodate))
             .collect::<Vec<&str>>()
             .join(", ")
     );
     z.parse().unwrap()
 }
-
+#[allow(dead_code)]
 #[derive(PartialEq, Clone)]
 enum FormatThing {
+    Weeks, //of the Year
     Weekday,
     Weeknum, //Num of Weekday
     Day,     //of Month
@@ -249,6 +177,7 @@ enum FormatThing {
 impl FormatThing {
     fn to_fmt(&self, caldate: bool, clodate: bool) -> &str {
         match self {
+            FormatThing::Weeks => "self.weeks",
             FormatThing::Weeknum => "self.weekday.to_num()",
             FormatThing::Weekday => "self.weekday",
             FormatThing::Day => {
@@ -295,12 +224,13 @@ impl FormatThing {
                 }
             }
             FormatThing::Timezone => "self.timezone",
-            _ => (),
+            //FormatThing::Weeks => "self.weeks"
         }
     }
 }
 
 struct Needed {
+    weeks: bool,
     weekday: bool,
     day: bool,
     days: bool,
@@ -312,4 +242,202 @@ struct Needed {
     hours: bool,
     clodate: bool,
     timezone: bool,
+}
+
+impl Default for Needed {
+    fn default() -> Self {
+        Needed {
+            weeks: false,
+            weekday: false,
+            day: false,
+            days: false,
+            month: false,
+            year: false,
+            caldate: false,
+            seconds: false,
+            minutes: false,
+            hours: false,
+            clodate: false,
+            timezone: false,
+        }
+    }
+}
+
+impl Needed {
+    fn to_fields(&mut self) -> String {
+        if self.day & self.month & self.year {
+            self.day = false;
+            self.month = false;
+            self.year = false;
+            self.caldate = true;
+        }
+        if self.seconds & self.minutes & self.hours {
+            self.seconds = false;
+            self.minutes = false;
+            self.hours = false;
+            self.clodate = true;
+        }
+        let mut str = String::new();
+        if self.weeks {
+            str.push_str("weeks: Weeks,");
+        }
+        if self.weekday {
+            str.push_str("weekday: Weekday,");
+        }
+        if self.day {
+            str.push_str("day: Day,");
+        }
+        if self.month {
+            str.push_str("month: Month,");
+        }
+        if self.year {
+            str.push_str("year: Year,");
+        }
+        if self.caldate {
+            str.push_str("caldate: CalDate,");
+        }
+        if self.seconds {
+            str.push_str("seconds: Seconds,");
+        }
+        if self.minutes {
+            str.push_str("minutes: Minutes,");
+        }
+        if self.hours {
+            str.push_str("hours: Hours,");
+        }
+        if self.clodate {
+            str.push_str("clodate: CloDate,");
+        }
+        if self.timezone {
+            str.push_str("timezone: Timezone,");
+        }
+        return str;
+    }
+    fn to_new(&self) -> String {
+        let mut str = String::new();
+        if self.weeks {
+            str.push_str("weeks: Weeks::new(),");
+        }
+        if self.weekday {
+            str.push_str("weekday: Weekday::new(),");
+        }
+        if self.day {
+            str.push_str("day: Day::new(),");
+        }
+        if self.month {
+            str.push_str("month: Month::new(),");
+        }
+        if self.year {
+            str.push_str("year: Year::new(),");
+        }
+        if self.caldate {
+            str.push_str("caldate: CalDate::new(),");
+        }
+        if self.seconds {
+            str.push_str("seconds: Seconds::new(),");
+        }
+        if self.minutes {
+            str.push_str("minutes: Minutes::new(),");
+        }
+        if self.hours {
+            str.push_str("hours: Hours::new(),");
+        }
+        if self.clodate {
+            str.push_str("clodate: CloDate::new(),");
+        }
+        if self.timezone {
+            str.push_str("timezone: Timezone::new(),");
+        }
+        return str;
+    }
+    fn to_now(&self) -> String {
+        let mut str = String::new();
+        if self.weeks {
+            str.push_str("weeks: Weeks::now(s),");
+        }
+        if self.weekday {
+            str.push_str("weekday: Weekday::now(s),");
+        }
+        if self.day {
+            str.push_str("day: Day::now(s),");
+        }
+        if self.month {
+            str.push_str("month: Month::now(s),");
+        }
+        if self.year {
+            str.push_str("year: Year::now(s),");
+        }
+        if self.caldate {
+            str.push_str("caldate: CalDate::now(s),");
+        }
+        if self.seconds {
+            str.push_str("seconds: Seconds::now(s),");
+        }
+        if self.minutes {
+            str.push_str("minutes: Minutes::now(s),");
+        }
+        if self.hours {
+            str.push_str("hours: Hours::now(s),");
+        }
+        if self.clodate {
+            str.push_str("clodate: CloDate::now(s),");
+        }
+        if self.timezone {
+            str.push_str("timezone: Timezone::now(s),");
+        }
+        return str;
+    }
+    fn to_impls(&self) -> String {
+        let mut str = String::from("use fiv_date::{Time,");
+        if self.weeks {
+            str.push_str("Weeks,");
+        }
+        if self.weekday {
+            str.push_str("Weekday,");
+        }
+        if self.day {
+            str.push_str("Day,");
+        }
+        if self.month {
+            str.push_str("Month,");
+        }
+        if self.year {
+            str.push_str("Year,");
+        }
+        if self.caldate {
+            str.push_str("CalDate,");
+        }
+        if self.seconds {
+            str.push_str("Seconds,");
+        }
+        if self.minutes {
+            str.push_str("Minutes,");
+        }
+        if self.hours {
+            str.push_str("Hours,");
+        }
+        if self.clodate {
+            str.push_str("CloDate,");
+        }
+        if self.timezone {
+            str.push_str("Timezone,");
+        }
+        str.push_str("};");
+        return str;
+    }
+    fn add(&mut self, fmt: FormatThing) {
+        match fmt {
+            FormatThing::Days => self.days = true,
+            FormatThing::Day => self.day = true,
+            FormatThing::Month => self.month = true,
+            FormatThing::Year => self.year = true,
+            FormatThing::Seconds => self.seconds = true,
+            FormatThing::Minutes => self.minutes = true,
+            FormatThing::Hours => self.hours = true,
+            FormatThing::Weekday => self.weekday = true,
+            FormatThing::Weeknum => self.weekday = true,
+            FormatThing::Weeks => self.weeks = true,
+            FormatThing::Timezone => self.timezone = true,
+        }
+    }
 }
