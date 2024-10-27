@@ -1,8 +1,6 @@
-use crate::Day;
 #[allow(unused_imports)]
 use crate::{
-    cal::{APR, AUG, DEC, FEB, JAN, JUL, JUN, MAR, MAY, NOV, OCT, SEP},
-    Days, Month, Time, Weekday, Year, Hour, Minute, Second,
+    Day, Days, Hour, Minute, Month, Second, Time, Weekday, Year,
 };
 #[allow(unused_imports)]
 use std::time::{Duration, SystemTime};
@@ -61,66 +59,66 @@ fn test_year() {
 #[test]
 fn test_month() {
     let default = Month::new();
-    assert_eq!(default, JAN);
+    assert_eq!(default, Month::JAN);
     for day in 0..31 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, JAN);
+        assert_eq!(y1, Month::JAN);
     }
     for day in 31..59 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, FEB);
+        assert_eq!(y1, Month::FEB);
     }
     for day in 59..90 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, MAR);
+        assert_eq!(y1, Month::MAR);
     }
     for day in 90..120 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, APR);
+        assert_eq!(y1, Month::APR);
     }
     for day in 120..151 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, MAY);
+        assert_eq!(y1, Month::MAY);
     }
     for day in 151..181 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, JUN);
+        assert_eq!(y1, Month::JUN);
     }
     for day in 181..212 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, JUL);
+        assert_eq!(y1, Month::JUL);
     }
     for day in 212..243 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, AUG);
+        assert_eq!(y1, Month::AUG);
     }
     for day in 243..273 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, SEP);
+        assert_eq!(y1, Month::SEP);
     }
     for day in 273..304 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, OCT);
+        assert_eq!(y1, Month::OCT);
     }
     for day in 304..334 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, NOV);
+        assert_eq!(y1, Month::NOV);
     }
     for day in 334..365 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
         let y1 = Month::now(&x1);
-        assert_eq!(y1, DEC);
+        assert_eq!(y1, Month::DEC);
     }
 }
 
@@ -242,25 +240,25 @@ fn test_days() {
     assert_eq!(y1.0, 365);
 
     for i in 0..365 {
-        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(i * 86400+1);
+        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(i * 86400 + 1);
         let y1 = Days::now(&x1);
         assert_eq!(y1.0, 365 - i as u16)
     }
 
     for i in 0..366 {
-        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs((i + 365) * 86400+1);
+        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs((i + 365) * 86400 + 1);
         let y1 = Days::now(&x1);
         assert_eq!(y1.0, 366 - i as u16)
     }
 
     for i in 0..365 {
-        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs((i + 731) * 86400+1);
+        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs((i + 731) * 86400 + 1);
         let y1 = Days::now(&x1);
         assert_eq!(y1.0, 365 - i as u16)
     }
 
     for i in 0..365 {
-        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs((i + 1096) * 86400+1);
+        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs((i + 1096) * 86400 + 1);
         let y1 = Days::now(&x1);
         assert_eq!(y1.0, 365 - i as u16)
     }
@@ -276,15 +274,15 @@ fn test_hour() {
     assert_eq!(y1.0, 0);
 
     for mins in 0..1440 {
-        let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(mins*60);
+        let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(mins * 60);
         let y1 = Hour::now(&x1);
-        assert_eq!(y1.0, (mins/60) as u8 %24)
+        assert_eq!(y1.0, (mins / 60) as u8 % 24)
     }
 
     for mins in 0..1440 {
-        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(mins*60);
+        let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(mins * 60);
         let y1 = Hour::now(&x1);
-        assert_eq!(y1.0, ((1440-mins)/60) as u8 % 24)
+        assert_eq!(y1.0, ((1440 - mins) / 60) as u8 % 24)
     }
 }
 
@@ -300,13 +298,13 @@ fn test_minutes() {
     for secs in 0..3600 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs);
         let y1 = Minute::now(&x1);
-        assert_eq!(y1.0, (secs/60) as u8 % 60)
+        assert_eq!(y1.0, (secs / 60) as u8 % 60)
     }
 
     for secs in 0..3600 {
         let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(secs);
         let y1 = Minute::now(&x1);
-        assert_eq!(y1.0, ((3600-secs)/60) as u8 % 60)
+        assert_eq!(y1.0, ((3600 - secs) / 60) as u8 % 60)
     }
 }
 
@@ -322,13 +320,46 @@ fn test_secs() {
     for secs in 0..120 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs);
         let y1 = Second::now(&x1);
-        assert_eq!(y1.0, (secs%60) as u8)
+        assert_eq!(y1.0, (secs % 60) as u8)
     }
 
     for secs in 0..120 {
         let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(secs);
         let y1 = Second::now(&x1);
-        assert_eq!(y1.0, (60-(secs%60)) as u8 %60)
+        assert_eq!(y1.0, (60 - (secs % 60)) as u8 % 60)
+    }
+}
+
+#[test]
+fn test_caldate() {
+    let default = Day::new();
+    assert_eq!(default.0, 1);
+
+    let x1 = SystemTime::UNIX_EPOCH;
+    let y1 = Day::now(&x1);
+    assert_eq!(y1.0, 1);
+
+    for secs in 0..86400 {
+        let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs + 1);
+        let y1 = Day::now(&x1);
+        assert_eq!(y1.0, 1 + ((secs + 1) / 86400) as u8);
+    }
+}
+
+#[test]
+fn test_clodate() {
+    let default = Day::new();
+    assert_eq!(default.0, 1);
+
+    let x1 = SystemTime::UNIX_EPOCH;
+    let y1 = Day::now(&x1);
+    assert_eq!(y1.0, 1);
+
+    for secs in 0..86400 {
+        let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs + 1);
+        let y1 = Day::now(&x1);
+        println!("{}", y1.0);
+        assert_eq!(y1.0, 1 + ((secs + 1) / 86400) as u8);
     }
 }
 
@@ -344,8 +375,28 @@ fn test_day() {
     for secs in 0..86400 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs + 1);
         let y1 = Day::now(&x1);
-        assert_eq!(y1.0, 1+((secs+1)/86400) as u8);
+        assert_eq!(y1.0, 1 + ((secs + 1) / 86400) as u8);
     }
+
+    for day in 0..1461 {
+        let x1 = SystemTime
+        let exp = 'outer:{
+            match day {
+                0..31=>0,
+                31..
+                790=>break 'outer 29,
+                _=>panic!()
+            }///////////////////////////////////////////////////////
+        };
+    }
+
+    let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(790*86400);
+    let y1 = Day::now(&x1);
+    assert_eq!(y1.0, 29);
+
+    let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(790*86400);
+    let y1 = Day::now(&x1);
+    assert_eq!(y1.0, 29);
 
     todo!("ToDo the Day MEss")
 }

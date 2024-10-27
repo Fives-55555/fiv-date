@@ -1,5 +1,6 @@
+//! # Calendaric Types
+//! This is 
 use crate::format_inner;
-
 pub struct Day(pub u8);
 
 impl Day {
@@ -23,24 +24,39 @@ impl Day {
 
 //-----------------------------------------------------------------------------------------------------
 
-pub type Month = Mon;
+#[derive(PartialEq, Debug)]
+pub struct Month(Mon);
 
-pub const JAN: Month = Mon::Jan;
-pub const FEB: Month = Mon::Feb;
-pub const MAR: Month = Mon::Mar;
-pub const APR: Month = Mon::Apr;
-pub const MAY: Month = Mon::May;
-pub const JUN: Month = Mon::Jun;
-pub const JUL: Month = Mon::Jul;
-pub const AUG: Month = Mon::Aug;
-pub const SEP: Month = Mon::Sep;
-pub const OCT: Month = Mon::Oct;
-pub const NOV: Month = Mon::Nov;
-pub const DEC: Month = Mon::Dec;
+impl Month {
+    /// January
+    pub const JAN: Month = Month(Mon::Jan);
+    /// Febuary
+    pub const FEB: Month = Month(Mon::Feb);
+    /// March
+    pub const MAR: Month = Month(Mon::Mar);
+    /// April
+    pub const APR: Month = Month(Mon::Apr);
+    /// May
+    pub const MAY: Month = Month(Mon::May);
+    /// June
+    pub const JUN: Month = Month(Mon::Jun);
+    /// July
+    pub const JUL: Month = Month(Mon::Jul);
+    /// August
+    pub const AUG: Month = Month(Mon::Aug);
+    /// September
+    pub const SEP: Month = Month(Mon::Sep);
+    /// October
+    pub const OCT: Month = Month(Mon::Oct);
+    /// November
+    pub const NOV: Month = Month(Mon::Nov);
+    /// December
+    pub const DEC: Month = Month(Mon::Dec);
+}
 
 impl Month {
     pub fn from_u8(z: u8) -> Month {
-        match z {
+        Month(match z {
             1 => Mon::Jan,
             2 => Mon::Feb,
             3 => Mon::Mar,
@@ -56,10 +72,10 @@ impl Month {
             _ => {
                 panic!("Date::1");
             }
-        }
+        })
     }
     pub fn as_num(&self) -> u8 {
-        match self {
+        match self.0 {
             Mon::Jan => 1,
             Mon::Feb => 2,
             Mon::Mar => 3,
@@ -75,7 +91,7 @@ impl Month {
         }
     }
     pub fn as_str(&self) -> &str {
-        match self {
+        match self.0 {
             Mon::Jan => "Jan",
             Mon::Feb => "Feb",
             Mon::Mar => "Mar",
@@ -92,14 +108,14 @@ impl Month {
     }
 }
 
-impl std::fmt::Display for Mon {
+impl std::fmt::Display for Month {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.as_num())
     }
 }
 
 #[derive(PartialEq, Debug)]
-pub enum Mon {
+enum Mon {
     Jan,
     Feb,
     Mar,
@@ -116,18 +132,18 @@ pub enum Mon {
 
 pub fn mon(day: u16) -> Month {
     match day {
-        335..366 => DEC,
-        305.. => NOV,
-        274.. => OCT,
-        244.. => SEP,
-        213.. => AUG,
-        182.. => JUL,
-        152.. => JUN,
-        121.. => MAY,
-        91.. => APR,
-        60.. => MAR,
-        32.. => FEB,
-        0.. => JAN,
+        335..366 => Month::DEC,
+        305.. => Month::NOV,
+        274.. => Month::OCT,
+        244.. => Month::SEP,
+        213.. => Month::AUG,
+        182.. => Month::JUL,
+        152.. => Month::JUN,
+        121.. => Month::MAY,
+        91.. => Month::APR,
+        60.. => Month::MAR,
+        32.. => Month::FEB,
+        0.. => Month::JAN,
     }
 }
 
@@ -135,49 +151,49 @@ pub fn mon_a_day(mut day: u16) -> (Month, u8) {
     let month = match day % 365 {
         335..=365 => {
             day -= 334;
-            DEC
+            Month::DEC
         }
         305.. => {
             day -= 304;
-            NOV
+            Month::NOV
         }
         274.. => {
             day -= 273;
-            OCT
+            Month::OCT
         }
         244.. => {
             day -= 243;
-            SEP
+            Month::SEP
         }
         213.. => {
             day -= 212;
-            AUG
+            Month::AUG
         }
         182.. => {
             day -= 181;
-            JUL
+            Month::JUL
         }
         152.. => {
             day -= 151;
-            JUN
+            Month::JUN
         }
         121.. => {
             day -= 120;
-            MAY
+            Month::MAY
         }
         91.. => {
             day -= 90;
-            APR
+            Month::APR
         }
         60.. => {
             day -= 59;
-            MAR
+            Month::MAR
         }
         32.. => {
             day -= 31;
-            FEB
+            Month::FEB
         }
-        0.. => JAN,
+        0.. => Month::JAN,
     };
     (month, day as u8)
 }
@@ -188,6 +204,7 @@ pub struct Year(pub u16);
 
 //-----------------------------------------------------------------------------------------------------
 
+/// Compacted Calendar Type for Performence
 pub struct CalDate {
     pub day: u8,
     pub month: Month,
@@ -196,6 +213,12 @@ pub struct CalDate {
 
 //-----------------------------------------------------------------------------------------------------
 
+/// Days of the Year
+/// 
+/// ## Available Values
+/// (Range is inclusive)
+/// 
+/// 1..366
 pub struct Days(pub u16);
 
 //-----------------------------------------------------------------------------------------------------

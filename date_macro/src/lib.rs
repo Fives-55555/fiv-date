@@ -1,7 +1,44 @@
+//! # Fiv-Date-Macro
+//! Underlyning Layer of the Fiv-Date crate
+//!
+//! ## Usage
+//! !!!Not recommended!!!
+//! Because it also needs the Fiv-Date crate for Types and Funcs
+//! 
+//! ## ONLY If you really want use this crate
+//! This crate hopefully implements the Fiv-Date automaticly
+//! 
+
 use proc_macro::{TokenStream, TokenTree};
 
+///Produces a struct with a given name and a custom format for date and time
+/// 
+/// This Macro optimizes the Custom Struct hopefully at Run-Time
+/// ## Usage
+/// ```
+///     custom_format_struct!(MyStruct, "{DD}.{MM}.{YYYY}")
+///     //                    ^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+///     //                    Name      Format String
+/// ```
+/// 
+/// Available Formatter
+/// | Name | Values(Ranges are inclusive) | Formatter |
+/// | ---- | ---------------------------- | --------- | 
+/// | Days of week           | 1..7         | {D}     |
+/// | Days of year           | 001..366     | {DDD}   |
+/// | Weekday                | Mon,Tuw,etc. | {www}   |
+/// | Day(of Month)          | 01..31       | {DD}    |
+/// | Month                  | 01..12       | {MM}/#A |
+/// | Year                   | 0000..9999   | {YYYY}  |
+/// | Weeks of Year          | 00..53       | {ww}    |
+/// | Hour                   | 00..24       | {hh}    |
+/// | Minute                 | 00..59       | {mm}    |
+/// | Second                 | 00..60       | {ss}    |
+/// | Fraction(Milliseconds) | 000..999     | {fff}   |
+/// 
+/// ### Soon Durations
 #[proc_macro]
-pub fn format_date_struct(input: TokenStream) -> TokenStream {
+pub fn custom_format_struct(input: TokenStream) -> TokenStream {
     let mut tokens = input.into_iter();
 
     let name = match tokens.next() {

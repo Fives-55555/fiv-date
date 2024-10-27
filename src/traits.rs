@@ -1,13 +1,15 @@
 use crate::{
-    cal::{mon, mon_a_day, CalDate, FEB, JAN},
-    CloDate, Day, Days, Hour, Minute, Second, Month, Weekday, Weeks, Year,
+    cal::{mon, mon_a_day}, CalDate, CloDate, Day, Days, Fraction, Hour, Minute, Month, Second, Weekday, Weeks, Year
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 
+
+///Implements basic Time Format Operations required for the macro
 pub trait Time {
-    fn new() -> Self;
-    //Without Leap Seconds
-    fn now(s: &SystemTime) -> Self;
+    ///The Default Value
+    fn new() -> Self where Self: Sized;
+    ///The value extracted out of the &SystemTime using UNIX_EPOCH as anchor in Time
+    fn now(s: &SystemTime) -> Self where Self: Sized;
 }
 
 impl Time for Weekday {
@@ -81,7 +83,7 @@ impl Time for Year {
 
 impl Time for Month {
     fn new() -> Self {
-        JAN
+        Month::JAN
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
@@ -135,7 +137,7 @@ impl Time for CalDate {
     fn new() -> Self {
         CalDate {
             day: 1,
-            month: JAN,
+            month: Month::JAN,
             year: 1970,
         }
     }
@@ -160,7 +162,7 @@ impl Time for CalDate {
                 671 => {
                     return CalDate {
                         year: 1969 - years,
-                        month: FEB,
+                        month: Month::FEB,
                         day: 29,
                     }
                 }
@@ -178,7 +180,7 @@ impl Time for CalDate {
                 790 => {
                     return CalDate {
                         year: years + 1972,
-                        month: FEB,
+                        month: Month::FEB,
                         day: 29,
                     }
                 }
@@ -235,7 +237,7 @@ impl Time for Days {
         };
         let mut days = dur.as_secs() / 86400;
         days %= 1461;
-        days+=1;
+        days += 1;
         days = if b {
             (match days {
                 1097.. => 1462,
@@ -330,7 +332,7 @@ impl Time for Second {
     fn new() -> Self {
         Second(0)
     }
-    fn now(s: &SystemTime)->Self {
+    fn now(s: &SystemTime) -> Self {
         let mut b = false;
         let dur = match s.duration_since(UNIX_EPOCH) {
             Ok(d) => d,
@@ -340,10 +342,32 @@ impl Time for Second {
                 d.duration()
             }
         };
-        let mut secs = (dur.as_secs()%60)as u8;
+        let mut secs = (dur.as_secs() % 60) as u8;
         if b {
-            secs = (60-secs)%60;
+            secs = (60 - secs) % 60;
         };
         Second(secs)
+    }
+}
+
+impl Time for Fraction {
+    fn new() -> Self {
+        Fraction(0)
+    }
+    fn now(s: &SystemTime) -> Self {
+        let mut b = false;
+        let dur = match s.duration_since(UNIX_EPOCH) {
+            Ok(d) => d,
+            //Before Unix Epoch
+            Err(d) => {
+                b = true;
+                d.duration()
+            }
+        };
+        let mut milli = dur.subsec_millis();
+        if b {
+            milli = (1000 - milli)%1000;
+        }
+        Fraction(milli as u16)
     }
 }
