@@ -1,15 +1,19 @@
 use crate::{
-    cal::{mon, mon_a_day}, CalDate, CloDate, Day, Days, Fraction, Hour, Minute, Month, Second, Weekday, Weeks, Year
+    cal::{mon, mon_a_day},
+    CalDate, CloDate, Day, Days, Fraction, Hour, Minute, Month, Second, Weekday, Weeks, Year,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
-
 
 ///Implements basic Time Format Operations required for the macro
 pub trait Time {
     ///The Default Value
-    fn new() -> Self where Self: Sized;
+    fn new() -> Self
+    where
+        Self: Sized;
     ///The value extracted out of the &SystemTime using UNIX_EPOCH as anchor in Time
-    fn now(s: &SystemTime) -> Self where Self: Sized;
+    fn now(s: &SystemTime) -> Self
+    where
+        Self: Sized;
 }
 
 impl Time for Weekday {
@@ -124,7 +128,7 @@ impl Time for Day {
         if b {
             days = 1461 - days;
         }
-        match days {
+        match days + 1 {
             790 => return Day(29),
             791.. => days -= 1,
             _ => (),
@@ -151,46 +155,33 @@ impl Time for CalDate {
                 d.duration()
             }
         };
-        let mut days = (dur.as_secs() / 86400) + 1;
+        let mut days = dur.as_secs() / 86400;
         let mut years = (days / 1461) as u16 * 4;
         days %= 1461;
-        let month: (Month, u8) = if b {
-            match days {
-                (672..) => {
-                    days -= 1;
-                }
-                671 => {
-                    return CalDate {
-                        year: 1969 - years,
-                        month: Month::FEB,
-                        day: 29,
-                    }
-                }
-                _ => (),
-            }
-            years += (days / 365) as u16;
-            days %= 365;
-            years = 1970 - years;
-            mon_a_day(365 - days as u16)
-        } else {
-            match days {
-                (791..) => {
-                    days -= 1;
-                }
-                790 => {
-                    return CalDate {
-                        year: years + 1972,
-                        month: Month::FEB,
-                        day: 29,
-                    }
-                }
-                _ => (),
-            }
-            years += (days / 365) as u16;
-            days %= 365;
-            years += 1970;
-            mon_a_day(days as u16)
+        if b {
+            days = 1461 - days;
         };
+        println!("{days}");
+        match days + 1 {
+            790 => {
+                return CalDate {
+                    year: years + 1972,
+                    month: Month::FEB,
+                    day: 29,
+                }
+            }
+            (791..) => {
+                days -= 1;
+            }
+            _ => (),
+        }
+        years += (days / 365) as u16;
+        if b {
+            years = 1969 - years;
+        } else {
+            years += 1970;
+        };
+        let month = mon_a_day((days % 365) as u16 + 1);
         CalDate {
             day: month.1,
             month: month.0,
@@ -366,7 +357,7 @@ impl Time for Fraction {
         };
         let mut milli = dur.subsec_millis();
         if b {
-            milli = (1000 - milli)%1000;
+            milli = (1000 - milli) % 1000;
         }
         Fraction(milli as u16)
     }

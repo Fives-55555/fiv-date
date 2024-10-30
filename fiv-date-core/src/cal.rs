@@ -1,5 +1,5 @@
 //! # Calendaric Types
-//! This is 
+//! This is
 use crate::format_inner;
 pub struct Day(pub u8);
 
@@ -110,7 +110,7 @@ impl Month {
 
 impl std::fmt::Display for Month {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_num())
+        write!(f, "{:02}", self.as_num())
     }
 }
 
@@ -148,7 +148,7 @@ pub fn mon(day: u16) -> Month {
 }
 
 pub fn mon_a_day(mut day: u16) -> (Month, u8) {
-    let month = match day % 365 {
+    let month = match day {
         335..=365 => {
             day -= 334;
             Month::DEC
@@ -214,10 +214,10 @@ pub struct CalDate {
 //-----------------------------------------------------------------------------------------------------
 
 /// Days of the Year
-/// 
+///
 /// ## Available Values
 /// (Range is inclusive)
-/// 
+///
 /// 1..366
 pub struct Days(pub u16);
 

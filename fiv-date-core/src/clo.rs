@@ -1,7 +1,6 @@
 use crate::format_inner;
 ///Module to Format Time
 
-
 ///Hour Struct ONLY VALUES BETWEEN 0 and 24 including 24 if it is a leap second
 pub struct Hour(pub u8);
 

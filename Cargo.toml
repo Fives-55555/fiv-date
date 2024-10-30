@@ -1,7 +1,6 @@
 [workspace]
     members = [
-        "date_macro",
-        #"..\\fiv-date"
+        "fiv-date-macro", "fiv-date-core",
     ]
 
 [package]
@@ -10,4 +9,5 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-date_macro={path=".\\date_macro"}
+fiv-date-macro={path=".\\fiv-date-macro"}
+fiv-date-core={path=".\\fiv-date-core"}

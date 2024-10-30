@@ -10,22 +10,25 @@
 ### - [x] Months
 ### - [x] Weekdays
 ### - [x] Days
-### - [ ] Weeks -(Last)
-### - [ ] Day --(In Progress)
-### - [ ] CalDate --(In Progress)
-### - [ ] CloDate --(In Progress)
+### - [ ] Weeks --(Last)
+### - [x] Day
+### - [x] CalDate
+### - [x] CloDate
 ### - [x] Hour
 ### - [x] Minute
 ### - [x] Second
-### - [ ] Fraction -(Next)
-## [ ] Add Sec Fractions
+### - [x] Fraction
+### - [ ] Macro (SOON Maybe)
+## [x] Add Sec Fractions
 ## [ ] Timezone Rabithole
 ## [ ] Leap Sec Module
-## [ ] Operator Traits for Struct of Time and Duration
-## [ ] Use Serde-Crate
+## [ ] Operator Traits for Struct of Time and Duration(Only Maybe)
+## [ ] Use Serde-Crate(Only Maybe)
 
 # Macro Crate
+## [x] Finished ??
 ## [x] Add Imports from fiv-date
-## [ ] Use the '{}'-Brackets as Formater 
-## [ ] Add " to avalible chars
-## [ ] Import fiv-date in macro-crate
+## [x] Removed Imports Fully from Macros
+## [x] Use the '{}'-Brackets as Formater 
+## [x] Add " to avalible chars
+## [x] Import fiv-date-core in macro-crate
