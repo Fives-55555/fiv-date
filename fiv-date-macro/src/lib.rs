@@ -363,21 +363,21 @@ impl FormatThing {
             }
             FormatThing::Seconds => {
                 if clodate {
-                    "self.clodate.seconds,"
+                    "self.clodate.second,"
                 } else {
                     "self.seconds,"
                 }
             }
             FormatThing::Minutes => {
                 if clodate {
-                    "self.clodate.minutes,"
+                    "self.clodate.minute,"
                 } else {
                     "self.minutes,"
                 }
             }
             FormatThing::Hours => {
                 if clodate {
-                    "self.clodate.hours,"
+                    "self.clodate.hour,"
                 } else {
                     "self.hours,"
                 }
