@@ -161,7 +161,6 @@ impl Time for CalDate {
         if b {
             days = 1461 - days;
         };
-        println!("{days}");
         match days + 1 {
             790 => {
                 return CalDate {
