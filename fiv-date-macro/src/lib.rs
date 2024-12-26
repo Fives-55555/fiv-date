@@ -17,7 +17,7 @@ use proc_macro::{TokenStream, TokenTree};
 /// ## Usage
 /// ```
 ///     let docs = r#"
-/// /// A correct Documention String is required
+/// /// A correct Documention String is required (The three Slashes are required)
 /// "#;
 ///     custom_format_struct!(MyStruct, "{DD}.{MM}.{YYYY}", false, docs)
 ///     //                    ^^^^^^^^  ^^^^^^^^^^^^^^^^^^  ^^^^^^
@@ -259,6 +259,7 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
     let impls = fields.to_impl();
     let now = fields.to_now();
     let modn = name.to_string().to_ascii_lowercase();
+    let to_date = to_date(&format, &format!("{name}DPErr"));
     let z = format!(
         r#"
 pub use {modn}::{name};
@@ -298,7 +299,9 @@ mod {modn} {{
     impl std::str::FromStr for {name} {{
         type Err = {name}DPErr;//Date Parse Error 
         fn from_str(s: &str) ->Result<Self, Self::Err> {{
-            Ok(Self::new()) //Add real IMpl////////////////////////////////////
+            let date = {name}::new();
+            let mut str: &str = s;
+            {to_date}
         }}
     }}
 }}"#);
@@ -384,6 +387,22 @@ impl FormatThing {
             }
             FormatThing::Timezone => "self.timezone,",
             FormatThing::BracketL | &FormatThing::BracketR | &FormatThing::Extra(_) => "",
+        }
+    }
+    fn to_type(&self)->&str {
+        match self {
+            FormatThing::Weeks=>"Weeks",
+            FormatThing::Weeknum=>"Weekday",
+            FormatThing::Day=>"Day",
+            FormatThing::Month=>"Month",
+            FormatThing::Year=>"Year",
+            FormatThing::Seconds=>"Seconds",
+            FormatThing::Minutes=>"Minutes",
+            FormatThing::Hours=>"Hours",
+            FormatThing::Timezone=>"Timezone",
+            FormatThing::Fraction=>"Fraction",
+            FormatThing::Days=>"Days",
+            FormatThing::BracketL | Self::BracketR | FormatThing::MonthAlph | FormatThing::Extra(_) | FormatThing::Weekday=>"",
         }
     }
 }
@@ -650,6 +669,48 @@ fn to_fmt(v: &Vec<FormatThing>, caldate: bool, clodate: bool) -> String {
     let mut str = String::with_capacity(v.len() * 3);
     for elem in v.iter() {
         str.push_str(elem.to_fmt(caldate, clodate));
+    }
+    str
+}
+
+fn to_date(v: &Vec<FormatThing>, errname: &str)->String{
+    let mut str = String::new();
+    for elem in v.iter() {
+        match elem {
+            FormatThing::BracketL =>{
+                str.push_str(&format!("let char = str.char().next();
+                if char.is_none() || char.unwrap() != '{{' {{
+                    return Err({errname}{{}});
+                }}"));
+            },
+            FormatThing::BracketR => {
+                str.push_str(&format!("let char = str.char().next();
+                if char.is_none() || char.unwrap() != '}}' {{
+                    return Err({errname}{{}});
+                }}"));
+            },
+            FormatThing::Extra(char) => {
+                str.push_str(&format!("let char = str.char().next();
+                if char.is_none() || char.unwrap() != '{char}' {{
+                    return Err({errname}{{}});
+                }}"));
+            },
+            FormatThing::MonthAlph=>{
+                todo!()
+            }
+            FormatThing::Weekday=>{
+                todo!()
+            }
+            _=>{
+                str.push_str(&format!(r#"match {}::to_date(str) {{
+                    Ok(date, n_str)=>{{
+                        str = n_str;
+
+                    }},
+                    Err(_)=>return Err({errname}{{}}),
+                }}"#, elem.to_type()));
+            }
+        }
     }
     str
 }

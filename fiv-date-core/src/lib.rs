@@ -39,3 +39,8 @@ macro_rules! format_inner {
         }
     };
 }
+
+
+pub trait ToDate {
+    fn to_date(s: &str)->Self;
+}
