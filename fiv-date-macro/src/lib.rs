@@ -405,63 +405,63 @@ impl FormatThing {
             FormatThing::BracketL | Self::BracketR | FormatThing::MonthAlph | FormatThing::Extra(_) | FormatThing::Weekday=>"",
         }
     }
-    fn to_field_name(&self)->&str{
+    fn to_field_name(&self, caldate: bool, clodate: bool)->&str{
         match self {
-            FormatThing::Weeks => "self.weeks,",
-            FormatThing::Weeknum => "self.weekday.to_num(),",
-            FormatThing::Weekday => "self.weekday,",
+            FormatThing::Weeks => "weeks",
+            FormatThing::Weeknum => "weekday.to_num()",
+            FormatThing::Weekday => "weekday",
             FormatThing::Day => {
                 if caldate {
-                    "self.caldate.day,"
+                    "caldate.day"
                 } else {
-                    "self.day,"
+                    "day"
                 }
             },
-            FormatThing::Fraction => "self.fraction,",
-            FormatThing::Days => "self.days,",
+            FormatThing::Fraction => "fraction",
+            FormatThing::Days => "days",
             FormatThing::Month => {
                 if caldate {
-                    "self.caldate.month,"
+                    "caldate.month"
                 } else {
-                    "self.month,"
+                    "month"
                 }
             }
-            FormatThing::MonthAlph => {
+            FormatThing::MonthAlph =>{
                 if caldate {
-                    "self.caldate.month.as_str(),"
+                    "caldate.month.as_str()"
                 } else {
-                    "self.month.as_str(),"
+                    "month.as_str()"
                 }
-            }
+            },
             FormatThing::Year => {
                 if caldate {
-                    "self.caldate.year,"
+                    "caldate.year"
                 } else {
-                    "self.year,"
+                    "year"
                 }
             }
             FormatThing::Seconds => {
                 if clodate {
-                    "self.clodate.second,"
+                    "clodate.second"
                 } else {
-                    "self.seconds,"
+                    "seconds"
                 }
             }
             FormatThing::Minutes => {
                 if clodate {
-                    "self.clodate.minute,"
+                    "clodate.minute"
                 } else {
-                    "self.minutes,"
+                    "minutes"
                 }
             }
             FormatThing::Hours => {
                 if clodate {
-                    "self.clodate.hour,"
+                    "clodate.hour"
                 } else {
-                    "self.hours,"
+                    "hours"
                 }
             }
-            FormatThing::Timezone => "self.timezone,",
+            FormatThing::Timezone => "timezone",
             FormatThing::BracketL | &FormatThing::BracketR | &FormatThing::Extra(_) => "",
         }
     }}
@@ -726,9 +726,11 @@ fn to_print(v: &Vec<FormatThing>) -> String {
 }
 
 fn to_fmt(v: &Vec<FormatThing>, caldate: bool, clodate: bool) -> String {
-    let mut str = String::with_capacity(v.len() * 3);
+    let mut str = String::with_capacity(v.len() * 8);
     for elem in v.iter() {
-        str.push_str(elem.to_fmt(caldate, clodate));
+        str.push_str("self.");
+        str.push_str(elem.to_field_name(caldate, clodate);
+        str.push(',');
     }
     str
 }
@@ -736,32 +738,56 @@ fn to_fmt(v: &Vec<FormatThing>, caldate: bool, clodate: bool) -> String {
 fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool)->String{
     let mut str = String::new();
     for elem in v.iter() {
-        
         match elem {
             FormatThing::BracketL =>{
                 str.push_str(&format!("let char = str.char().next();
                 if char.is_none() || char.unwrap() != '{{' {{
                     return Err({errname}{{}});
-                }}"));
+                }}else{{
+                    str = &str[1..];
+                }}
+                ")); 
             },
             FormatThing::BracketR => {
                 str.push_str(&format!("let char = str.char().next();
                 if char.is_none() || char.unwrap() != '}}' {{
                     return Err({errname}{{}});
-                }}"));
+                }}else{{
+                    str = &str[1..];
+                }}
+                "));
             },
             FormatThing::Extra(char) => {
                 str.push_str(&format!("let char = str.char().next();
                 if char.is_none() || char.unwrap() != '{char}' {{
                     return Err({errname}{{}});
-                }}"));
+                }}else{{
+                    str = &str[1..];
+                }}
+                "));
             },
             FormatThing::MonthAlph=>{
-                todo!()
+                str.push_str(&format!(r#"match Month::from_str(&str[..3]) {{
+                    Ok(month)=>{{
+                        str = &str[3..];
+                        if caldate {{
+                            date.caldate.month = month;
+                        }}else{{
+                            date.month = month;
+                        }}
+                    }},
+                    Err(_)=>return Err({errname}{{}}),
+                }}"#));
             }
             FormatThing::Weekday=>{
-                todo!()
-            },
+                str.push_str(&format!(r#"match Weekday::from_str(&str[..3]) {{
+                        Ok(date)=>{{
+                            str = &str[3..];
+                            date.weekday = date;
+                        }},
+                        Err(_)=>{errname}{{}}
+                    }}"#));
+            }
             _=>{
                 str.push_str(&format!(r#"match {}::to_date(str) {{
                     Ok(date, n_str)=>{{
@@ -769,7 +795,8 @@ fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool)->S
                         date.{} = date;
                     }},
                     Err(_)=>return Err({errname}{{}}),
-                }}"#, elem.to_type()));
+                }}
+                "#, elem.to_type(), elem.to_field_name(caldate, clodate)));
             }
         }
     }
