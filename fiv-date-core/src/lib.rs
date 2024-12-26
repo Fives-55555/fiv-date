@@ -17,6 +17,7 @@ pub use crate::clo::Hour;
 pub use crate::clo::Minute;
 pub use crate::clo::Second;
 pub use crate::traits::Time;
+pub use crate::ToDate;
 
 /// Implements the Display Trait for a given struct
 ///
@@ -41,6 +42,6 @@ macro_rules! format_inner {
 }
 
 
-pub trait ToDate {
+trait ToDate {
     fn to_date(s: &str)->Self;
 }
