@@ -406,8 +406,65 @@ impl FormatThing {
         }
     }
     fn to_field_name(&self)->&str{
-        match 
-    }
+        match self {
+            FormatThing::Weeks => "self.weeks,",
+            FormatThing::Weeknum => "self.weekday.to_num(),",
+            FormatThing::Weekday => "self.weekday,",
+            FormatThing::Day => {
+                if caldate {
+                    "self.caldate.day,"
+                } else {
+                    "self.day,"
+                }
+            },
+            FormatThing::Fraction => "self.fraction,",
+            FormatThing::Days => "self.days,",
+            FormatThing::Month => {
+                if caldate {
+                    "self.caldate.month,"
+                } else {
+                    "self.month,"
+                }
+            }
+            FormatThing::MonthAlph => {
+                if caldate {
+                    "self.caldate.month.as_str(),"
+                } else {
+                    "self.month.as_str(),"
+                }
+            }
+            FormatThing::Year => {
+                if caldate {
+                    "self.caldate.year,"
+                } else {
+                    "self.year,"
+                }
+            }
+            FormatThing::Seconds => {
+                if clodate {
+                    "self.clodate.second,"
+                } else {
+                    "self.seconds,"
+                }
+            }
+            FormatThing::Minutes => {
+                if clodate {
+                    "self.clodate.minute,"
+                } else {
+                    "self.minutes,"
+                }
+            }
+            FormatThing::Hours => {
+                if clodate {
+                    "self.clodate.hour,"
+                } else {
+                    "self.hours,"
+                }
+            }
+            FormatThing::Timezone => "self.timezone,",
+            FormatThing::BracketL | &FormatThing::BracketR | &FormatThing::Extra(_) => "",
+        }
+    }}
 }
 
 struct Needed {
