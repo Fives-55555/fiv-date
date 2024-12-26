@@ -299,7 +299,7 @@ mod {modn} {{
     impl std::str::FromStr for {name} {{
         type Err = {name}DPErr;//Date Parse Error 
         fn from_str(s: &str) ->Result<Self, Self::Err> {{
-            let date = {name}::new();
+            let mut date = {name}::new();
             let mut str: &str = s;
             {to_date}
         }}
@@ -341,7 +341,7 @@ impl FormatThing {
                     "self.day,"
                 }
             },
-            FormatThing::Fraction => "self.fraction",
+            FormatThing::Fraction => "self.fraction,",
             FormatThing::Days => "self.days,",
             FormatThing::Month => {
                 if caldate {
@@ -404,6 +404,9 @@ impl FormatThing {
             FormatThing::Days=>"Days",
             FormatThing::BracketL | Self::BracketR | FormatThing::MonthAlph | FormatThing::Extra(_) | FormatThing::Weekday=>"",
         }
+    }
+    fn to_field_name(&self)->&str{
+        match 
     }
 }
 
@@ -594,7 +597,7 @@ impl Needed {
             str.push_str("Year,");
         }
         if self.caldate {
-            str.push_str("CalDate,");
+            str.push_str("CalDate, Year, Month, Day,");
         }
         if self.seconds {
             str.push_str("Seconds,");
@@ -606,7 +609,7 @@ impl Needed {
             str.push_str("Hours,");
         }
         if self.clodate {
-            str.push_str("CloDate,");
+            str.push_str("CloDate, Seconds, Minutes, Hours,");
         }
         if self.timezone {
             str.push_str("Timezone,");
@@ -673,9 +676,10 @@ fn to_fmt(v: &Vec<FormatThing>, caldate: bool, clodate: bool) -> String {
     str
 }
 
-fn to_date(v: &Vec<FormatThing>, errname: &str)->String{
+fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool)->String{
     let mut str = String::new();
     for elem in v.iter() {
+        
         match elem {
             FormatThing::BracketL =>{
                 str.push_str(&format!("let char = str.char().next();
@@ -700,12 +704,12 @@ fn to_date(v: &Vec<FormatThing>, errname: &str)->String{
             }
             FormatThing::Weekday=>{
                 todo!()
-            }
+            },
             _=>{
                 str.push_str(&format!(r#"match {}::to_date(str) {{
                     Ok(date, n_str)=>{{
                         str = n_str;
-
+                        date.{} = date;
                     }},
                     Err(_)=>return Err({errname}{{}}),
                 }}"#, elem.to_type()));
