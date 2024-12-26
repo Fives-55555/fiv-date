@@ -1,6 +1,7 @@
 //! # Calendaric Types
 //! This is
 use crate::format_inner;
+use crate::ToDate;
 pub struct Day(pub u8);
 
 impl Day {
@@ -19,6 +20,23 @@ impl Day {
             32.. => day - 31,
             0.. => day,
         } as u8)
+    }
+}
+
+impl ToDate for Day {
+    fn to_date(str: &str)->Result<(Self, &str),()> {
+        if str.len() < 2 {
+            return Err(())
+        }
+        let num = &str[..2];
+        let num = match num.parse::<u8>() {
+            Ok(num)=>num,
+            Err(_)=>return Err(()),
+        };
+        if num < 32 && != 0 {
+            return Ok((Day(num), &str[2..]))
+        }
+        return Err(())
     }
 }
 
@@ -105,6 +123,23 @@ impl Month {
             Mon::Nov => "Nov",
             Mon::Dec => "Dec",
         }
+    }
+    pub fn from_str(str: &str)->Month {
+        Month(match str {
+            "Jan"=>Mon::Jan,
+            "Feb"=>Mon::Feb,
+            "Mar"=>Mon::Mar,
+            "Apr"=>Mon::Apr,
+            "May"=>Mon::May,
+            "Jun"=>Mon::Jun,
+            "Jul"=>Mon::Jul,
+            "Aug"=>Mon::Aug,
+            "Sep"=>Mon::Sep,
+            "Oct"=>Mon::Oct,
+            "Nov"=>Mon::Nov,
+            "Dec"=>Mon::Dec,
+            _=>todo!("Please impl Error")
+        })
     }
 }
 
