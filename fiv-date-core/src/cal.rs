@@ -124,7 +124,7 @@ impl Month {
             Mon::Dec => "Dec",
         }
     }
-    pub fn from_str(str: &str)->Month {
+    pub fn from_str(str: &str)->Result<Month,()> {
         Month(match str {
             "Jan"=>Mon::Jan,
             "Feb"=>Mon::Feb,
