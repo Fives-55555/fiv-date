@@ -43,5 +43,5 @@ macro_rules! format_inner {
 
 
 trait ToDate {
-    fn to_date(s: &str)->Self;
+    fn to_date(s: &str)->Result<(Self,&str),()>;
 }
