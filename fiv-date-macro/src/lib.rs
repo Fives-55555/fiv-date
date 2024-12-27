@@ -764,7 +764,10 @@ fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool)->S
                 "));
             },
             FormatThing::MonthAlph=>{
-                str.push_str(&format!(r#"match Month::from_str(&str[..3]) {{
+                str.push_str(&format!(r#"if str.len() < 3 {{
+                    return Err({errname}{{}})
+                }}
+                match Month::from_str(&str[..3]) {{
                     Ok(month)=>{{
                         str = &str[3..];
                         if caldate {{
@@ -777,7 +780,10 @@ fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool)->S
                 }}"#));
             }
             FormatThing::Weekday=>{
-                str.push_str(&format!(r#"match Weekday::from_str(&str[..3]) {{
+                str.push_str(&format!(r#"if str.len() < 3 {{
+                    return Err({errname}{{}})
+                }}
+                match Weekday::from_str(&str[..3]) {{
                         Ok(date)=>{{
                             str = &str[3..];
                             date.weekday = date;
