@@ -246,10 +246,7 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
     }
     let mut fields = Needed::default();
     for thing in format.iter() {
-        match thing {
-            FormatThing::Weeknum => fields.add(FormatThing::Weekday),
-            _ => fields.add(thing.clone()),
-        }
+        fields.add(thing)
     }
 
     let field = fields.to_fields();
@@ -690,7 +687,7 @@ impl Needed {
             FormatThing::Weeks => self.weeks = true,
             FormatThing::Timezone => self.timezone = true,
             FormatThing::Fraction => self.fraction = true,
-            FormatThing::MonthAlph => (),
+            FormatThing::MonthAlph => self.month = true,
             FormatThing::BracketL => (),
             FormatThing::BracketR => (),
             FormatThing::Extra(_) => (),
