@@ -73,7 +73,7 @@ impl Month {
 }
 
 impl Month {
-    pub fn from_u8(z: u8) -> Month {
+    pub fn from_u8(z: u8) -> Result<Month,()> {
         Month(match z {
             1 => Mon::Jan,
             2 => Mon::Feb,
@@ -87,9 +87,7 @@ impl Month {
             10 => Mon::Oct,
             11 => Mon::Nov,
             12 => Mon::Dec,
-            _ => {
-                panic!("Date::1");
-            }
+            _ =>return Err(())
         })
     }
     pub fn as_num(&self) -> u8 {
@@ -138,8 +136,26 @@ impl Month {
             "Oct"=>Mon::Oct,
             "Nov"=>Mon::Nov,
             "Dec"=>Mon::Dec,
-            _=>todo!("Please impl Error")
+            _=>return Err(())
         })
+    }
+}
+
+impl ToDate for Month {
+    fn to_date(s: &str)->Result<(Self,&str),()> {
+        if s.len() < 2 {
+            return Err(())
+        }
+        match (&str[..2]).parse::<u8>() {
+            Ok(num)=>{
+                match Month::from_u8(num) {
+                    Ok(month)=>return Ok((month,&str[2..]),
+                    Err(_)=>(),
+                }
+            },
+            Err(_)=>(),
+        }
+        return Err(())
     }
 }
 
@@ -236,6 +252,19 @@ pub fn mon_a_day(mut day: u16) -> (Month, u8) {
 //-----------------------------------------------------------------------------------------------------
 
 pub struct Year(pub u16);
+
+impl ToDate for Year {
+    fn to_date(s: &str)->Result<(Self, &str),()> {
+        if s.len() < 4 {
+            return Err(())
+        }
+        match (&s[..4]).parse::<u16>() {
+            Ok(num) if num < 10000=>{
+                return Ok((Year(num), &s[4..]))
+            }
+        }
+    }
+}
 
 //-----------------------------------------------------------------------------------------------------
 
