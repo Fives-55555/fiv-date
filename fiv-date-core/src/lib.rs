@@ -17,7 +17,7 @@ pub use crate::clo::Hour;
 pub use crate::clo::Minute;
 pub use crate::clo::Second;
 pub use crate::traits::Time;
-pub use crate::ToDate;
+pub use crate::traits::ToDate;
 
 /// Implements the Display Trait for a given struct
 ///
@@ -28,20 +28,16 @@ pub use crate::ToDate;
 ///
 ///     struct MyStruct(u8);
 ///     //The inner type must implement the Display Trait
-///     format_inner!(MyStruct);
+///     format_inner!(MyStruct, 2);
+///     //            Name      Ammount of Zeros
 /// ```
 #[macro_export]
 macro_rules! format_inner {
-    ($name:ident) => {
+    ($name:ident, $ammount:expr) => {
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.0)
+                write!(f, "{:0width$}", self.0, width = $ammount)
             }
         }
     };
-}
-
-
-trait ToDate {
-    fn to_date(s: &str)->Result<(Self,&str),()>;
 }

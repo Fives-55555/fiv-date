@@ -2,7 +2,6 @@ use crate::custom_format_struct;
 
 use crate as fiv_date;
 
-
 custom_format_struct!(BasicDate, "{YYYY}{MM}{DD}", true);
 custom_format_struct!(BasicDateWS, "{YYYY}-{MM}-{DD}", true);
 custom_format_struct!(YearMonth, "{YYYY}{MM}", true);

@@ -1,7 +1,8 @@
 //! # Calendaric Types
 //! This is
+use std::fmt::Display;
+
 use crate::format_inner;
-use crate::ToDate;
 pub struct Day(pub u8);
 
 impl Day {
@@ -20,23 +21,6 @@ impl Day {
             32.. => day - 31,
             0.. => day,
         } as u8)
-    }
-}
-
-impl ToDate for Day {
-    fn to_date(str: &str)->Result<(Self, &str),()> {
-        if str.len() < 2 {
-            return Err(())
-        }
-        let num = &str[..2];
-        let num = match num.parse::<u8>() {
-            Ok(num)=>num,
-            Err(_)=>return Err(()),
-        };
-        if num < 32 && != 0 {
-            return Ok((Day(num), &str[2..]))
-        }
-        return Err(())
     }
 }
 
@@ -73,8 +57,8 @@ impl Month {
 }
 
 impl Month {
-    pub fn from_u8(z: u8) -> Result<Month,()> {
-        Month(match z {
+    pub fn from_u8(z: u8) -> Result<Month, ()> {
+        Ok(Month(match z {
             1 => Mon::Jan,
             2 => Mon::Feb,
             3 => Mon::Mar,
@@ -87,8 +71,8 @@ impl Month {
             10 => Mon::Oct,
             11 => Mon::Nov,
             12 => Mon::Dec,
-            _ =>return Err(())
-        })
+            _ => return Err(()),
+        }))
     }
     pub fn as_num(&self) -> u8 {
         match self.0 {
@@ -122,40 +106,22 @@ impl Month {
             Mon::Dec => "Dec",
         }
     }
-    pub fn from_str(str: &str)->Result<Month,()> {
-        Month(match str {
-            "Jan"=>Mon::Jan,
-            "Feb"=>Mon::Feb,
-            "Mar"=>Mon::Mar,
-            "Apr"=>Mon::Apr,
-            "May"=>Mon::May,
-            "Jun"=>Mon::Jun,
-            "Jul"=>Mon::Jul,
-            "Aug"=>Mon::Aug,
-            "Sep"=>Mon::Sep,
-            "Oct"=>Mon::Oct,
-            "Nov"=>Mon::Nov,
-            "Dec"=>Mon::Dec,
-            _=>return Err(())
-        })
-    }
-}
-
-impl ToDate for Month {
-    fn to_date(s: &str)->Result<(Self,&str),()> {
-        if s.len() < 2 {
-            return Err(())
-        }
-        match (&str[..2]).parse::<u8>() {
-            Ok(num)=>{
-                match Month::from_u8(num) {
-                    Ok(month)=>return Ok((month,&str[2..]),
-                    Err(_)=>(),
-                }
-            },
-            Err(_)=>(),
-        }
-        return Err(())
+    pub fn from_str(str: &str) -> Result<Month, ()> {
+        Ok(Month(match str {
+            "Jan" => Mon::Jan,
+            "Feb" => Mon::Feb,
+            "Mar" => Mon::Mar,
+            "Apr" => Mon::Apr,
+            "May" => Mon::May,
+            "Jun" => Mon::Jun,
+            "Jul" => Mon::Jul,
+            "Aug" => Mon::Aug,
+            "Sep" => Mon::Sep,
+            "Oct" => Mon::Oct,
+            "Nov" => Mon::Nov,
+            "Dec" => Mon::Dec,
+            _ => return Err(()),
+        }))
     }
 }
 
@@ -253,26 +219,13 @@ pub fn mon_a_day(mut day: u16) -> (Month, u8) {
 
 pub struct Year(pub u16);
 
-impl ToDate for Year {
-    fn to_date(s: &str)->Result<(Self, &str),()> {
-        if s.len() < 4 {
-            return Err(())
-        }
-        match (&s[..4]).parse::<u16>() {
-            Ok(num) if num < 10000=>{
-                return Ok((Year(num), &s[4..]))
-            }
-        }
-    }
-}
-
 //-----------------------------------------------------------------------------------------------------
 
 /// Compacted Calendar Type for Performence
 pub struct CalDate {
-    pub day: u8,
+    pub day: Day,
     pub month: Month,
-    pub year: u16,
+    pub year: Year,
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -312,6 +265,18 @@ impl Weekday {
             Self::Sunday => "Sun",
         }
     }
+    pub fn from_str(s: &str) -> Result<Self, ()> {
+        Ok(match s {
+            "Mon" => Self::Monday,
+            "Tue" => Self::Tuesday,
+            "Wed" => Self::Wednesday,
+            "Thu" => Self::Thursday,
+            "Fri" => Self::Friday,
+            "Sat" => Self::Saturday,
+            "Sun" => Self::Sunday,
+            _ => return Err(()),
+        })
+    }
     pub fn to_num(&self) -> u8 {
         match self {
             Self::Monday => 1,
@@ -323,8 +288,26 @@ impl Weekday {
             Self::Sunday => 7,
         }
     }
+    pub fn from_num(x: u8) -> Result<Weekday, ()> {
+        Ok(match x {
+            1 => Self::Monday,
+            2 => Self::Tuesday,
+            3 => Self::Wednesday,
+            4 => Self::Thursday,
+            5 => Self::Friday,
+            6 => Self::Saturday,
+            7 => Self::Sunday,
+            _ => return Err(()),
+        })
+    }
     pub fn to_idx(&self) -> u8 {
         self.to_num() - 1
+    }
+}
+
+impl Display for Weekday {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_num())
     }
 }
 
@@ -334,7 +317,7 @@ pub struct Weeks(pub u8);
 
 //-----------------------------------------------------------------------------------------------------
 
-format_inner!(Year);
-format_inner!(Day);
-format_inner!(Days);
-format_inner!(Weeks);
+format_inner!(Year, 4);
+format_inner!(Day, 2);
+format_inner!(Days, 3);
+format_inner!(Weeks, 2);

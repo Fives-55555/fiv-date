@@ -31,7 +31,7 @@
 //!     println!("{custom_struct}");
 //!     // This would print the actual time: "Custom Format: {Day: 01, Month: 01, Year: 1970}"
 //!     
-//!     // Also backwards compatible (SOON)
+//!     // Also reverse compatible
 //!     let date = "Custom Format: {Day: 01, Month: 01, Year: 1970}";
 //!     let custom_struct: MyStruct = date.parse().unwrap();
 //!     println!("{custom_struct}");
@@ -52,7 +52,7 @@
 //!     println!("{iso}");
 //!     // This would print the actual time: "19700101"
 //!     
-//!     // Also backwards compatible (SOON)
+//!     // Also reverse compatible
 //!     let date = "19700101";
 //!     let iso: BasicDate = date.parse().unwrap();
 //!     println!("{iso}");
@@ -63,20 +63,21 @@ pub mod iso_8601;
 
 pub use crate as fiv_date;
 
-//pub use iso_8601::BasicDate;
-
 pub use fiv_date_macro::custom_format_struct;
 
 pub use fiv_date_core::CalDate;
+pub use fiv_date_core::CloDate;
 pub use fiv_date_core::Day;
 pub use fiv_date_core::Days;
-pub use fiv_date_core::Month;
-pub use fiv_date_core::Weekday;
-pub use fiv_date_core::Weeks;
-pub use fiv_date_core::Year;
-pub use fiv_date_core::CloDate;
 pub use fiv_date_core::Fraction;
 pub use fiv_date_core::Hour;
 pub use fiv_date_core::Minute;
+pub use fiv_date_core::Month;
 pub use fiv_date_core::Second;
 pub use fiv_date_core::Time;
+pub use fiv_date_core::ToDate;
+pub use fiv_date_core::Weekday;
+pub use fiv_date_core::Weeks;
+pub use fiv_date_core::Year;
+
+mod tests;

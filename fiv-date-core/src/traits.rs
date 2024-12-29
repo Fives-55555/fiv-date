@@ -4,6 +4,13 @@ use crate::{
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 
+///Implements the parsing from &str to the Date
+pub trait ToDate {
+    fn to_date(s: &str) -> Result<(Self, &str), ()>
+    where
+        Self: Sized;
+}
+
 ///Implements basic Time Format Operations required for the macro
 pub trait Time {
     ///The Default Value
@@ -18,7 +25,7 @@ pub trait Time {
 
 impl Time for Weekday {
     fn new() -> Self {
-        Self::Monday
+        Self::Thursday
     }
     fn now(s: &SystemTime) -> Self {
         let mut b = false;
@@ -140,9 +147,9 @@ impl Time for Day {
 impl Time for CalDate {
     fn new() -> Self {
         CalDate {
-            day: 1,
+            day: Day(1),
             month: Month::JAN,
-            year: 1970,
+            year: Year(1970),
         }
     }
     fn now(s: &SystemTime) -> Self {
@@ -164,9 +171,9 @@ impl Time for CalDate {
         match days + 1 {
             790 => {
                 return CalDate {
-                    year: years + 1972,
+                    year: Year(years + 1972),
                     month: Month::FEB,
-                    day: 29,
+                    day: Day(29),
                 }
             }
             (791..) => {
@@ -182,9 +189,9 @@ impl Time for CalDate {
         };
         let month = mon_a_day((days % 365) as u16 + 1);
         CalDate {
-            day: month.1,
+            day: Day(month.1),
             month: month.0,
-            year: years,
+            year: Year(years),
         }
     }
 }
@@ -287,9 +294,9 @@ impl Time for Weeks {
 impl Time for CloDate {
     fn new() -> Self {
         CloDate {
-            second: 0,
-            minute: 0,
-            hour: 0,
+            second: Second(0),
+            minute: Minute(0),
+            hour: Hour(0),
         }
     }
     fn now(s: &SystemTime) -> Self {
@@ -311,9 +318,9 @@ impl Time for CloDate {
         let minutes = (hours % 60) as u8;
         hours /= 60;
         CloDate {
-            hour: hours as u8,
-            minute: minutes,
-            second: seconds,
+            hour: Hour(hours as u8),
+            minute: Minute(minutes),
+            second: Second(seconds),
         }
     }
 }
@@ -359,5 +366,138 @@ impl Time for Fraction {
             milli = (1000 - milli) % 1000;
         }
         Fraction(milli as u16)
+    }
+}
+
+impl ToDate for Day {
+    fn to_date(str: &str) -> Result<(Self, &str), ()> {
+        if str.len() < 2 {
+            return Err(());
+        }
+        let num = &str[..2];
+        let num = match num.parse::<u8>() {
+            Ok(num) => num,
+            Err(_) => return Err(()),
+        };
+        if num < 32 && num != 0 {
+            return Ok((Day(num), &str[2..]));
+        }
+        return Err(());
+    }
+}
+
+impl ToDate for Month {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 2 {
+            return Err(());
+        }
+        match (&s[..2]).parse::<u8>() {
+            Ok(num) => match Month::from_u8(num) {
+                Ok(month) => return Ok((month, &s[2..])),
+                Err(_) => (),
+            },
+            Err(_) => (),
+        }
+        return Err(());
+    }
+}
+
+impl ToDate for Year {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 4 {
+            return Err(());
+        }
+        match (&s[..4]).parse::<u16>() {
+            Ok(num) if num < 10000 => return Ok((Year(num), &s[4..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Fraction {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 3 {
+            return Err(());
+        }
+        match (&s[..3]).parse::<u16>() {
+            Ok(num) if num < 1000 => return Ok((Fraction(num), &s[3..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Second {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 2 {
+            return Err(());
+        }
+        match (&s[..2]).parse::<u8>() {
+            Ok(num) if num < 61 => return Ok((Second(num), &s[2..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Minute {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 2 {
+            return Err(());
+        }
+        match (&s[..2]).parse::<u8>() {
+            Ok(num) if num < 60 => return Ok((Minute(num), &s[2..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Hour {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 2 {
+            return Err(());
+        }
+        match (&s[..2]).parse::<u8>() {
+            Ok(num) if num < 24 => return Ok((Hour(num), &s[2..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Weeks {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 2 {
+            return Err(());
+        }
+        match (&s[..2]).parse::<u8>() {
+            Ok(num) if num < 54 => return Ok((Weeks(num), &s[2..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Days {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 3 {
+            return Err(());
+        }
+        match (&s[..3]).parse::<u16>() {
+            Ok(num) if num < 367 => return Ok((Days(num), &s[3..])),
+            _ => return Err(()),
+        }
+    }
+}
+
+impl ToDate for Weekday {
+    fn to_date(s: &str) -> Result<(Self, &str), ()> {
+        if s.len() < 1 {
+            return Err(());
+        }
+        match (&s[..1]).parse::<u8>() {
+            Ok(num) => match Weekday::from_num(num) {
+                Ok(wd) => return Ok((wd, &s[1..])),
+                Err(_) => (),
+            },
+            _ => (),
+        }
+        return Err(());
     }
 }

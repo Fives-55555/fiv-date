@@ -125,7 +125,7 @@ fn test_month() {
 #[test]
 fn test_weekday() {
     let default = Weekday::new();
-    assert_eq!(default, Weekday::Monday);
+    assert_eq!(default, Weekday::Thursday);
 
     let x1 = SystemTime::UNIX_EPOCH;
     let y1 = Weekday::now(&x1);
@@ -333,14 +333,14 @@ fn test_secs() {
 #[test]
 fn test_caldate() {
     let default = CalDate::new();
-    assert_eq!(default.day, 1);
+    assert_eq!(default.day.0, 1);
     assert_eq!(default.month, Month::JAN);
-    assert_eq!(default.year, 1970);
+    assert_eq!(default.year.0, 1970);
 
     for secs in 0..86400 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs + 1);
         let y1 = CalDate::now(&x1);
-        assert_eq!(y1.day, 1 + ((secs + 1) / 86400) as u8);
+        assert_eq!(y1.day.0, 1 + ((secs + 1) / 86400) as u8);
     }
 
     for day in 0..1461 {
@@ -446,12 +446,12 @@ fn test_caldate() {
             }) + 1;
         let y1 = CalDate::now(&x1);
         println!("{}--{}--{}", y1.day, y1.month, y1.year);
-        assert_eq!(y1.day, exp as u8)
+        assert_eq!(y1.day.0, exp as u8)
     }
 
     let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(789 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.day, 29);
+    assert_eq!(y1.day.0, 29);
 
     for day in 0..1461 {
         let day = day + 1;
@@ -557,12 +557,12 @@ fn test_caldate() {
                 _ => 0,
             }) + 1;
         let y1 = CalDate::now(&x1);
-        assert_eq!(y1.day, exp as u8)
+        assert_eq!(y1.day.0, exp as u8)
     }
 
     let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(672 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.day, 29);
+    assert_eq!(y1.day.0, 29);
 
     for day in 0..31 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(day * 86400);
@@ -627,92 +627,92 @@ fn test_caldate() {
 
     let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(364 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.year, 1970);
+    assert_eq!(y1.year.0, 1970);
     let x2 = SystemTime::UNIX_EPOCH + Duration::from_secs(365 * 86400);
     let y2 = CalDate::now(&x2);
-    assert_eq!(y2.year, 1971);
+    assert_eq!(y2.year.0, 1971);
     let x3 = SystemTime::UNIX_EPOCH + Duration::from_secs(366 * 86400);
     let y3 = CalDate::now(&x3);
-    assert_eq!(y3.year, 1971);
+    assert_eq!(y3.year.0, 1971);
     let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(729 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.year, 1971);
+    assert_eq!(y1.year.0, 1971);
     let x2 = SystemTime::UNIX_EPOCH + Duration::from_secs(730 * 86400);
     let y2 = CalDate::now(&x2);
-    assert_eq!(y2.year, 1972);
+    assert_eq!(y2.year.0, 1972);
     let x3 = SystemTime::UNIX_EPOCH + Duration::from_secs(731 * 86400);
     let y3 = CalDate::now(&x3);
-    assert_eq!(y3.year, 1972);
+    assert_eq!(y3.year.0, 1972);
     let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(1095 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.year, 1972);
+    assert_eq!(y1.year.0, 1972);
     let x2 = SystemTime::UNIX_EPOCH + Duration::from_secs(1096 * 86400);
     let y2 = CalDate::now(&x2);
-    assert_eq!(y2.year, 1973);
+    assert_eq!(y2.year.0, 1973);
     let x3 = SystemTime::UNIX_EPOCH + Duration::from_secs(1097 * 86400);
     let y3 = CalDate::now(&x3);
-    assert_eq!(y3.year, 1973);
+    assert_eq!(y3.year.0, 1973);
     let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(1460 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.year, 1973);
+    assert_eq!(y1.year.0, 1973);
     let x2 = SystemTime::UNIX_EPOCH + Duration::from_secs(1461 * 86400);
     let y2 = CalDate::now(&x2);
-    assert_eq!(y2.year, 1974);
+    assert_eq!(y2.year.0, 1974);
     let x3 = SystemTime::UNIX_EPOCH + Duration::from_secs(1462 * 86400);
     let y3 = CalDate::now(&x3);
-    assert_eq!(y3.year, 1974);
+    assert_eq!(y3.year.0, 1974);
     let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(1825 * 86400);
     let y1 = CalDate::now(&x1);
-    assert_eq!(y1.year, 1974);
+    assert_eq!(y1.year.0, 1974);
     let x2 = SystemTime::UNIX_EPOCH + Duration::from_secs(1826 * 86400);
     let y2 = CalDate::now(&x2);
-    assert_eq!(y2.year, 1975);
+    assert_eq!(y2.year.0, 1975);
     let x3 = SystemTime::UNIX_EPOCH + Duration::from_secs(1827 * 86400);
     let y3 = CalDate::now(&x3);
-    assert_eq!(y3.year, 1975);
+    assert_eq!(y3.year.0, 1975);
 }
 
 #[test]
 fn test_clodate() {
     let default = CloDate::new();
-    assert_eq!(default.hour, 0);
-    assert_eq!(default.minute, 0);
-    assert_eq!(default.second, 0);
+    assert_eq!(default.hour.0, 0);
+    assert_eq!(default.minute.0, 0);
+    assert_eq!(default.second.0, 0);
 
     for mins in 0..1440 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(mins * 60);
         let y1 = CloDate::now(&x1);
-        assert_eq!(y1.hour, (mins / 60) as u8 % 24)
+        assert_eq!(y1.hour.0, (mins / 60) as u8 % 24)
     }
 
     for mins in 0..1440 {
         let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(mins * 60);
         let y1 = CloDate::now(&x1);
-        assert_eq!(y1.hour, ((1440 - mins) / 60) as u8 % 24)
+        assert_eq!(y1.hour.0, ((1440 - mins) / 60) as u8 % 24)
     }
 
     for secs in 0..3600 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs);
         let y1 = CloDate::now(&x1);
-        assert_eq!(y1.minute, (secs / 60) as u8 % 60)
+        assert_eq!(y1.minute.0, (secs / 60) as u8 % 60)
     }
 
     for secs in 0..3600 {
         let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(secs);
         let y1 = CloDate::now(&x1);
-        assert_eq!(y1.minute, ((3600 - secs) / 60) as u8 % 60)
+        assert_eq!(y1.minute.0, ((3600 - secs) / 60) as u8 % 60)
     }
 
     for secs in 0..120 {
         let x1 = SystemTime::UNIX_EPOCH + Duration::from_secs(secs);
         let y1 = CloDate::now(&x1);
-        assert_eq!(y1.second, (secs % 60) as u8)
+        assert_eq!(y1.second.0, (secs % 60) as u8)
     }
 
     for secs in 0..120 {
         let x1 = SystemTime::UNIX_EPOCH - Duration::from_secs(secs);
         let y1 = CloDate::now(&x1);
-        assert_eq!(y1.second, (60 - (secs % 60)) as u8 % 60)
+        assert_eq!(y1.second.0, (60 - (secs % 60)) as u8 % 60)
     }
 }
 

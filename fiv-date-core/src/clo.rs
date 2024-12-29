@@ -4,30 +4,30 @@ use crate::format_inner;
 ///Hour Struct ONLY VALUES BETWEEN 0 and 24 including 24 if it is a leap second
 pub struct Hour(pub u8);
 
-format_inner!(Hour);
+format_inner!(Hour, 2);
 
 //-----------------------------------------------------------------------------------------------------
 
 pub struct Minute(pub u8);
 
-format_inner!(Minute);
+format_inner!(Minute, 2);
 
 //-----------------------------------------------------------------------------------------------------
 
 pub struct Second(pub u8);
 
-format_inner!(Second);
+format_inner!(Second, 2);
 
 //-----------------------------------------------------------------------------------------------------
 
 pub struct CloDate {
-    pub second: u8,
-    pub minute: u8,
-    pub hour: u8,
+    pub second: Second,
+    pub minute: Minute,
+    pub hour: Hour,
 }
 
 //-----------------------------------------------------------------------------------------------------
 
 pub struct Fraction(pub u16);
 
-format_inner!(Fraction);
+format_inner!(Fraction, 3);

@@ -1,5 +1,5 @@
 //! # Fiv-Date-Macro
-//! Underlyning Layer of the Fiv-Date crate
+//! Underling Layer of the Fiv-Date crate
 //!
 //! ## Usage
 //! !!!Not recommended!!!
@@ -79,7 +79,7 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                 } else {
                     panic!("Wrong parameter (Should be a bool)")
                 }
-            },
+            }
             _ => panic!("Too many commas or missing bool"),
         };
         break 'xy str;
@@ -91,9 +91,11 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
             _ => break 'xy String::new(),
         };
         let str = match tokens.next() {
-            Some(TokenTree::Literal(l)) if l.to_string().starts_with('"') && l.to_string().ends_with('"') => {
+            Some(TokenTree::Literal(l))
+                if l.to_string().starts_with('"') && l.to_string().ends_with('"') =>
+            {
                 let x = l.to_string();
-                x[1..x.len()-1].to_string()
+                x[1..x.len() - 1].to_string()
             }
             _ => panic!("Too many commas or missing String"),
         };
@@ -103,18 +105,16 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
     let str = &format_str[1..format_str.len() - 1];
 
     let mut chars = str.chars();
-    let mut char: Option<char> = chars.next();
-
-    if char.is_none() {
-        panic!("Impossible::1")
-    }
+    let mut char: Option<char>;
 
     let len = str.len();
-    let mut i = 1;
+    let mut i = 0;
 
     let mut format = Vec::new();
 
     while i < len {
+        char = chars.next();
+        i += 1;
         match char.unwrap() {
             '{' => {
                 char = chars.next();
@@ -137,21 +137,20 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                         char = chars.next();
                         i += 1;
                         if char.is_some() && char.unwrap() == 'M' {
-                            format.push(FormatThing::Month);
+                            char = chars.next();
+                            i += 1;
+                            if char.is_some() && char.unwrap() == '#' {
+                                char = chars.next();
+                                i += 1;
+                                format.push(FormatThing::MonthAlph);
+                            } else {
+                                format.push(FormatThing::Month);
+                            }
                         } else {
                             panic!("Wrong Format Pattern (Missing 'M')")
                         }
-                        char = chars.next();
-                        i += 1;
-                        if char.is_some() && char.unwrap() == '#' {
-                            char = chars.next();
-                            i += 1;
-                            format.pop();
-                            format.push(FormatThing::MonthAlph);
-                            
-                        }
                         if char.is_none() || char.unwrap() != '}' {
-                            panic!("Wrong Format Delimitter ('}}')")
+                            panic!("Wrong Format Delimitter ('}}')1")
                         }
                         continue;
                     }
@@ -159,10 +158,22 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                         char = chars.next();
                         i += 1;
                         if char.is_some() && char.unwrap() == 'w' {
-                            format.push(FormatThing::Weeks);
+                            char = chars.next();
+                            i += 1;
+                            if char.is_some() && char.unwrap() == 'w' {
+                                char = chars.next();
+                                i += 1;
+                                format.push(FormatThing::Weekday);
+                            } else {
+                                format.push(FormatThing::Weeks);
+                            }
+                            if char.is_none() || char.unwrap() != '}' {
+                                panic!("Wrong Format Delimitter ('}}')4")
+                            }
                         } else {
                             panic!("Wrong Format Pattern (Missing 'w')")
                         }
+                        continue;
                     }
                     'D' => {
                         char = chars.next();
@@ -171,6 +182,8 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                             char = chars.next();
                             i += 1;
                             if char.is_some() && char.unwrap() == 'D' {
+                                char = chars.next();
+                                i += 1;
                                 format.push(FormatThing::Days);
                             } else {
                                 format.push(FormatThing::Day);
@@ -179,7 +192,7 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                             format.push(FormatThing::Weeknum);
                         }
                         if char.is_none() || char.unwrap() != '}' {
-                            panic!("Wrong Format Delimitter ('}}')")
+                            panic!("Wrong Format Delimitter ('}}')2")
                         }
                         continue;
                     }
@@ -222,8 +235,8 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                     }
                     '{' => {
                         format.push(FormatThing::BracketR);
+                        continue;
                     }
-
                     _ => {
                         panic!("Wrong Format Pattern (Wrong Pattern)")
                     }
@@ -231,24 +244,29 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
                 char = chars.next();
                 i += 1;
                 if !(char.is_some() && char.unwrap() == '}') {
-                    panic!("Wrong Format Delimitter ('}}')")
+                    panic!(
+                        "Wrong Format Delimitter ('}}')3{:#?}",
+                        format[format.len() - 1]
+                    )
                 }
             }
             '}' => {
+                char = chars.next();
+                i += 1;
+                if char.is_none() || char.unwrap() != '}' {
+                    panic!("Missing Second ('}}')");
+                }
                 format.push(FormatThing::BracketL);
             }
             _ => {
                 format.push(FormatThing::Extra(char.unwrap()));
             }
         }
-        char = chars.next();
-        i += 1;
     }
     let mut fields = Needed::default();
     for thing in format.iter() {
         fields.add(thing)
     }
-
     let field = fields.to_fields();
     let print = to_print(&format);
     let fmt = to_fmt(&format, fields.caldate, fields.clodate);
@@ -256,13 +274,18 @@ pub fn custom_format_struct(input: TokenStream) -> TokenStream {
     let impls = fields.to_impl();
     let now = fields.to_now();
     let modn = name.to_string().to_ascii_lowercase();
-    let to_date = to_date(&format, &format!("{name}DPErr"));
+    let to_date = to_date(
+        &format,
+        &format!("{name}DPErr"),
+        fields.caldate,
+        fields.clodate,
+    );
     let z = format!(
         r#"
 pub use {modn}::{name};
 
 mod {modn} {{
-    use {supers}fiv_date::{{Time,{impls}}};
+    use {supers}fiv_date::{{Time, ToDate,{impls}}};
 
     {docs}
     ///
@@ -299,113 +322,60 @@ mod {modn} {{
             let mut date = {name}::new();
             let mut str: &str = s;
             {to_date}
+            Ok(date)
         }}
     }}
-}}"#);
+}}"#
+    );
     z.parse().unwrap()
 }
-#[allow(dead_code)]
-#[derive(PartialEq, Clone)]
+
+#[expect(dead_code)]
+#[derive(PartialEq, Clone, Debug)]
 enum FormatThing {
     Weeks, //of the Year //
-    Weekday, 
+    Weekday,
     Weeknum, //Num of Weekday //
     Day,     //of Month //
     Days,    //of Year //
     MonthAlph,
-    Month, //
-    Year, //
+    Month,    //
+    Year,     //
     Fraction, //
-    Seconds, //
-    Minutes, //
-    Hours, //
+    Seconds,  //
+    Minutes,  //
+    Hours,    //
     Timezone,
     Extra(char), //
-    BracketR, //
-    BracketL, //
+    BracketR,    //
+    BracketL,    //
 }
 
 impl FormatThing {
-    fn to_fmt(&self, caldate: bool, clodate: bool) -> &str {
+    fn to_type(&self) -> &str {
         match self {
-            FormatThing::Weeks => "self.weeks,",
-            FormatThing::Weeknum => "self.weekday.to_num(),",
-            FormatThing::Weekday => "self.weekday,",
-            FormatThing::Day => {
-                if caldate {
-                    "self.caldate.day,"
-                } else {
-                    "self.day,"
-                }
-            },
-            FormatThing::Fraction => "self.fraction,",
-            FormatThing::Days => "self.days,",
-            FormatThing::Month => {
-                if caldate {
-                    "self.caldate.month,"
-                } else {
-                    "self.month,"
-                }
-            }
-            FormatThing::MonthAlph => {
-                if caldate {
-                    "self.caldate.month.as_str(),"
-                } else {
-                    "self.month.as_str(),"
-                }
-            }
-            FormatThing::Year => {
-                if caldate {
-                    "self.caldate.year,"
-                } else {
-                    "self.year,"
-                }
-            }
-            FormatThing::Seconds => {
-                if clodate {
-                    "self.clodate.second,"
-                } else {
-                    "self.seconds,"
-                }
-            }
-            FormatThing::Minutes => {
-                if clodate {
-                    "self.clodate.minute,"
-                } else {
-                    "self.minutes,"
-                }
-            }
-            FormatThing::Hours => {
-                if clodate {
-                    "self.clodate.hour,"
-                } else {
-                    "self.hours,"
-                }
-            }
-            FormatThing::Timezone => "self.timezone,",
-            FormatThing::BracketL | &FormatThing::BracketR | &FormatThing::Extra(_) => "",
+            FormatThing::Weeks => "Weeks",
+            FormatThing::Weeknum => "Weekday",
+            FormatThing::Day => "Day",
+            FormatThing::Month => "Month",
+            FormatThing::Year => "Year",
+            FormatThing::Seconds => "Second",
+            FormatThing::Minutes => "Minute",
+            FormatThing::Hours => "Hour",
+            FormatThing::Timezone => "Timezone",
+            FormatThing::Fraction => "Fraction",
+            FormatThing::Days => "Days",
+            FormatThing::BracketL
+            | Self::BracketR
+            | FormatThing::MonthAlph
+            | FormatThing::Extra(_)
+            | FormatThing::Weekday => "",
         }
     }
-    fn to_type(&self)->&str {
-        match self {
-            FormatThing::Weeks=>"Weeks",
-            FormatThing::Weeknum=>"Weekday",
-            FormatThing::Day=>"Day",
-            FormatThing::Month=>"Month",
-            FormatThing::Year=>"Year",
-            FormatThing::Seconds=>"Seconds",
-            FormatThing::Minutes=>"Minutes",
-            FormatThing::Hours=>"Hours",
-            FormatThing::Timezone=>"Timezone",
-            FormatThing::Fraction=>"Fraction",
-            FormatThing::Days=>"Days",
-            FormatThing::BracketL | Self::BracketR | FormatThing::MonthAlph | FormatThing::Extra(_) | FormatThing::Weekday=>"",
-        }
-    }
-    fn to_field_name(&self, caldate: bool, clodate: bool)->&str{
+    fn to_field_name(&self, caldate: bool, clodate: bool) -> &str {
         match self {
             FormatThing::Weeks => "weeks",
-            FormatThing::Weeknum => "weekday.to_num()",
+            FormatThing::Weeknum => "weekday",
             FormatThing::Weekday => "weekday",
             FormatThing::Day => {
                 if caldate {
@@ -413,7 +383,7 @@ impl FormatThing {
                 } else {
                     "day"
                 }
-            },
+            }
             FormatThing::Fraction => "fraction",
             FormatThing::Days => "days",
             FormatThing::Month => {
@@ -423,13 +393,13 @@ impl FormatThing {
                     "month"
                 }
             }
-            FormatThing::MonthAlph =>{
+            FormatThing::MonthAlph => {
                 if caldate {
-                    "caldate.month.as_str()"
+                    "caldate.month"
                 } else {
-                    "month.as_str()"
+                    "month"
                 }
-            },
+            }
             FormatThing::Year => {
                 if caldate {
                     "caldate.year"
@@ -461,9 +431,10 @@ impl FormatThing {
             FormatThing::Timezone => "timezone",
             FormatThing::BracketL | &FormatThing::BracketR | &FormatThing::Extra(_) => "",
         }
-    }}
+    }
 }
 
+#[derive(Debug)]
 struct Needed {
     weeks: bool,
     weekday: bool,
@@ -483,11 +454,9 @@ struct Needed {
 impl Default for Needed {
     fn default() -> Self {
         Needed {
-            fraction: false,
             weeks: false,
             weekday: false,
             day: false,
-            days: false,
             month: false,
             year: false,
             caldate: false,
@@ -496,6 +465,8 @@ impl Default for Needed {
             hours: false,
             clodate: false,
             timezone: false,
+            fraction: false,
+            days: false,
         }
     }
 }
@@ -534,13 +505,13 @@ impl Needed {
             str.push_str("caldate: CalDate,");
         }
         if self.seconds {
-            str.push_str("seconds: Seconds,");
+            str.push_str("seconds: Second,");
         }
         if self.minutes {
-            str.push_str("minutes: Minutes,");
+            str.push_str("minutes: Minute,");
         }
         if self.hours {
-            str.push_str("hours: Hours,");
+            str.push_str("hours: Hour,");
         }
         if self.clodate {
             str.push_str("clodate: CloDate,");
@@ -550,6 +521,9 @@ impl Needed {
         }
         if self.fraction {
             str.push_str("fraction: Fraction,");
+        }
+        if self.days {
+            str.push_str("days: Days,");
         }
         return str;
     }
@@ -574,13 +548,13 @@ impl Needed {
             str.push_str("caldate: CalDate::new(),");
         }
         if self.seconds {
-            str.push_str("seconds: Seconds::new(),");
+            str.push_str("seconds: Second::new(),");
         }
         if self.minutes {
-            str.push_str("minutes: Minutes::new(),");
+            str.push_str("minutes: Minute::new(),");
         }
         if self.hours {
-            str.push_str("hours: Hours::new(),");
+            str.push_str("hours: Hour::new(),");
         }
         if self.clodate {
             str.push_str("clodate: CloDate::new(),");
@@ -591,6 +565,10 @@ impl Needed {
         if self.fraction {
             str.push_str("fraction: Fraction::new(),");
         }
+        if self.days {
+            str.push_str("days: Days::new(),");
+        }
+        //
         return str;
     }
     fn to_now(&self) -> String {
@@ -614,22 +592,22 @@ impl Needed {
             str.push_str("caldate: CalDate::now(s),");
         }
         if self.seconds {
-            str.push_str("seconds: Seconds::now(s),");
+            str.push_str("seconds: Second::now(s),");
         }
         if self.minutes {
-            str.push_str("minutes: Minutes::now(s),");
+            str.push_str("minutes: Minute::now(s),");
         }
         if self.hours {
-            str.push_str("hours: Hours::now(s),");
+            str.push_str("hours: Hour::now(s),");
         }
         if self.clodate {
             str.push_str("clodate: CloDate::now(s),");
         }
-        if self.timezone {
-            str.push_str("timezone: Timezone::now(s),");
-        }
         if self.fraction {
             str.push_str("fraction: Fraction::now(s),");
+        }
+        if self.days {
+            str.push_str("days: Days::now(s),");
         }
         return str;
     }
@@ -654,16 +632,16 @@ impl Needed {
             str.push_str("CalDate, Year, Month, Day,");
         }
         if self.seconds {
-            str.push_str("Seconds,");
+            str.push_str("Second,");
         }
         if self.minutes {
-            str.push_str("Minutes,");
+            str.push_str("Minute,");
         }
         if self.hours {
-            str.push_str("Hours,");
+            str.push_str("Hour,");
         }
         if self.clodate {
-            str.push_str("CloDate, Seconds, Minutes, Hours,");
+            str.push_str("CloDate, Second, Minute, Hour,");
         }
         if self.timezone {
             str.push_str("Timezone,");
@@ -671,9 +649,12 @@ impl Needed {
         if self.fraction {
             str.push_str("Fraction,");
         }
+        if self.days {
+            str.push_str("Days,");
+        }
         return str;
     }
-    fn add(&mut self, fmt: FormatThing) {
+    fn add(&mut self, fmt: &FormatThing) {
         match fmt {
             FormatThing::Days => self.days = true,
             FormatThing::Day => self.day = true,
@@ -701,22 +682,11 @@ fn to_print(v: &Vec<FormatThing>) -> String {
         str.push_str(match elem {
             FormatThing::BracketL => "}}",
             FormatThing::BracketR => "{{",
-            FormatThing::Weeknum
-            | FormatThing::Month
-            | FormatThing::Timezone
-            | FormatThing::MonthAlph
-            | FormatThing::Weekday => "{}",
-            FormatThing::Day
-            | FormatThing::Hours
-            | FormatThing::Seconds
-            | FormatThing::Minutes
-            | FormatThing::Weeks => "{:02}",
-            FormatThing::Days | FormatThing::Fraction => "{:03}",
-            FormatThing::Year => "{:04}",
             FormatThing::Extra(char) => {
                 str.push(char.clone());
                 continue;
             }
+            _ => "{}",
         });
     }
     str
@@ -725,81 +695,105 @@ fn to_print(v: &Vec<FormatThing>) -> String {
 fn to_fmt(v: &Vec<FormatThing>, caldate: bool, clodate: bool) -> String {
     let mut str = String::with_capacity(v.len() * 8);
     for elem in v.iter() {
-        str.push_str("self.");
-        str.push_str(elem.to_field_name(caldate, clodate);
-        str.push(',');
+        match elem {
+            FormatThing::BracketL | FormatThing::BracketR | FormatThing::Extra(_) => (),
+            FormatThing::Weekday => str.push_str("self.weekday.as_str(),"),
+            FormatThing::MonthAlph => {
+                str.push_str("self.");
+                str.push_str(elem.to_field_name(caldate, clodate));
+                str.push_str(".as_str(),");
+            }
+            _ => {
+                str.push_str("self.");
+                str.push_str(elem.to_field_name(caldate, clodate));
+                str.push(',');
+            }
+        }
     }
     str
 }
 
-fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool)->String{
+fn to_date(v: &Vec<FormatThing>, errname: &str, caldate: bool, clodate: bool) -> String {
     let mut str = String::new();
     for elem in v.iter() {
         match elem {
-            FormatThing::BracketL =>{
-                str.push_str(&format!("let char = str.char().next();
-                if char.is_none() || char.unwrap() != '{{' {{
-                    return Err({errname}{{}});
-                }}else{{
-                    str = &str[1..];
-                }}
-                ")); 
-            },
-            FormatThing::BracketR => {
-                str.push_str(&format!("let char = str.char().next();
+            FormatThing::BracketL => {
+                str.push_str(&format!(
+                    r#"let char = str.chars().next();
                 if char.is_none() || char.unwrap() != '}}' {{
                     return Err({errname}{{}});
                 }}else{{
                     str = &str[1..];
                 }}
-                "));
-            },
+                "#
+                ));
+            }
+            FormatThing::BracketR => {
+                str.push_str(&format!(
+                    r#"let char = str.chars().next();
+                if char.is_none() || char.unwrap() != '{{' {{
+                    return Err({errname}{{}});
+                }}else{{
+                    str = &str[1..];
+                }}
+                "#
+                ));
+            }
             FormatThing::Extra(char) => {
-                str.push_str(&format!("let char = str.char().next();
+                str.push_str(&format!(
+                    r#"let char = str.chars().next();
                 if char.is_none() || char.unwrap() != '{char}' {{
                     return Err({errname}{{}});
                 }}else{{
                     str = &str[1..];
                 }}
-                "));
-            },
-            FormatThing::MonthAlph=>{
-                str.push_str(&format!(r#"if str.len() < 3 {{
+                "#
+                ));
+            }
+            FormatThing::MonthAlph => {
+                str.push_str(&format!(
+                    r#"if str.len() < 3 {{
                     return Err({errname}{{}})
                 }}
                 match Month::from_str(&str[..3]) {{
                     Ok(month)=>{{
                         str = &str[3..];
-                        if caldate {{
-                            date.caldate.month = month;
-                        }}else{{
-                            date.month = month;
-                        }}
+                        date.{} = month
                     }},
-                    Err(_)=>return Err({errname}{{}}),
-                }}"#));
+                    Err(_)=>{{  
+                        return Err({errname}{{}})
+                    }}
+                }}"#,
+                    elem.to_field_name(caldate, clodate)
+                ));
             }
-            FormatThing::Weekday=>{
-                str.push_str(&format!(r#"if str.len() < 3 {{
+            FormatThing::Weekday => {
+                str.push_str(&format!(
+                    r#"if str.len() < 3 {{
                     return Err({errname}{{}})
                 }}
                 match Weekday::from_str(&str[..3]) {{
-                        Ok(date)=>{{
+                        Ok(c_date)=>{{
                             str = &str[3..];
-                            date.weekday = date;
+                            date.weekday = c_date;
                         }},
-                        Err(_)=>{errname}{{}}
-                    }}"#));
+                        Err(_)=>return Err({errname}{{}})
+                    }}"#
+                ));
             }
-            _=>{
-                str.push_str(&format!(r#"match {}::to_date(str) {{
-                    Ok(date, n_str)=>{{
+            _ => {
+                str.push_str(&format!(
+                    r#"match {}::to_date(str) {{
+                    Ok((c_date, n_str))=>{{
                         str = n_str;
-                        date.{} = date;
+                        date.{} = c_date;
                     }},
                     Err(_)=>return Err({errname}{{}}),
                 }}
-                "#, elem.to_type(), elem.to_field_name(caldate, clodate)));
+                "#,
+                    elem.to_type(),
+                    elem.to_field_name(caldate, clodate)
+                ));
             }
         }
     }
