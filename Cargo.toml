@@ -5,8 +5,8 @@
 
 [package]
 name = "fiv-date"
-version = "0.3.0"
-edition = "2021"
+version = "0.4.0"
+edition = "2024"
 
 [dependencies]
 fiv-date-macro={path=".\\fiv-date-macro"}
